@@ -1,0 +1,40 @@
+﻿* text=auto
+
+*.editorconfig text eol=lf
+*.gitattributes text eol=lf
+*.gitignore text eol=lf
+*.vscodeignore text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.code-workspace text eol=lf
+*.slnx text eol=lf
+*.yml text eol=lf
+*.txt text eol=lf
+*.py text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.sh text eol=lf
+*.bash text eol=lf
+*.html text eol=lf
+*.xml text eol=lf
+*.ts text eol=lf
+*.cs text eol=lf
+*.npmrc text eol=lf
+*.babelrc text eol=lf
+*.npmignore text eol=lf
+*.sus text eol=lf
+*.susproj text eol=lf
+*.susln text eol=lf
+
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
