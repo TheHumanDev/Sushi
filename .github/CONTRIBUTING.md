@@ -58,7 +58,7 @@ Maintainers may exercise discretion when specific testing or documentation requi
 
 # Commit Requirements
 All commits entering the official repository must have valid cryptographic signatures recognized by GitHub. Contributors may use GitHub-supported GPG, SSH, or S/MIME signing.
-See GitHub's [commit signature verification documentation]https://docs.github.com/en/authentication/managing-commit-signature-verification) for setup instructions. If any of
+See GitHub's [commit signature verification documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification) for setup instructions. If any of
 the commits in your pull request are not signed, **they will be rejected**.
 
 # Preserving Git History
@@ -87,7 +87,7 @@ Sushi is licensed under the Apache License, Version 2.0. By submitting a contrib
 Apache License 2.0 and understand that contributions are subject to its terms. Contributors must not submit code, documentation, or other material they are not
 authorized to contribute.
 
-# Security Vulnerabilites
+# Security Vulnerabilities
 Please do not publicly disclose suspected security vulnerabilities through issues, discussions, or pull requests.
 Instead follow the private reporting procedures described in the [Security Policy](https://github.com/TheHumanDev/Sushi/blob/master/.github/SECURITY.md).
 
