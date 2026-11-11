@@ -40,6 +40,8 @@ body:
         - Build System
         - Standard Library
         - Other / Unknown
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
