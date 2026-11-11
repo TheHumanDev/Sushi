@@ -1,0 +1,62 @@
+
+name: Documentation Issue
+description: Report missing, inaccurate, unclear, or contradictory Sushi documentation.
+title: "[Docs]: "
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Sushi's documentation.
+        Use this form to report missing, inaccurate, unclear, or contradictory documentation.
+        If you want to propose new language behavior rather than correct existing documentation, please use GitHub Discussions instead.
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: |
+        Provide the URL, file path, or section containing the problem.
+        For missing documentation, identify where you expected to find it.
+      placeholder: "Example: Language Specification, Section 4.17"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description
+      description: |
+        Explain what is missing, incorrect, unclear, or contradictory.
+        Include relevant excerpts or examples where useful.
+      placeholder: |
+        Describe the documentation issue and explain why
+        the existing information is insufficient or incorrect.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Correction
+      description: |
+        If you have a proposed correction or clarification,
+        describe it here. Suggestions are welcome but not required.
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Affected Sushi Version
+      description: |
+        Specify the affected version or commit if the issue
+        concerns documentation for a particular release.
+      placeholder: "Example: v0.2.0-alpha"
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: |
+        Include related issues, conflicting documentation,
+        screenshots, examples, or other relevant information.
+    validations:
+      required: false
