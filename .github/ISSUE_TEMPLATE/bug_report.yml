@@ -17,6 +17,14 @@ body:
     attributes:
       label: Sushi Version or Commit
       description: Specify the affected version or exact commit SHA.
+      placeholder: "Example: v0.2.0-alpha or a commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating System and Architecture
+      description: SPecify the operating system, version, and architecture.
       placeholder: "Example: Windows 11 24H2, x64"
     validations:
       required: true
