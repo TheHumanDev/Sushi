@@ -1,7 +1,9 @@
 name: Bug Report
 description: Report a reproducible bug in Sushi or its tooling.
 title: "[Bug]: "
-labels: "Type: Bug"
+labels:
+  - "Type: Bug"
+  - "Status: Needs Triage"
 
 body:
   - type: markdown
