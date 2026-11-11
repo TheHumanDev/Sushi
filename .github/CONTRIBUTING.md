@@ -15,6 +15,14 @@ and [Security Policy](https://github.com/TheHumanDev/Sushi/blob/master/.github/S
 
 External contributors should fork the repository, create a development branch, and submit a pull request against the official repository. Direct repository write access is reserved for authorized maintainers.
 
+# Reporting and Tracking Issues
+
+Use the repository's GitHub Issue Forms to report bugs, documentation problems, or actionable implementation requests.
+
+Maintainers evaluate and prioritize issues according to the [Issue Triage and Lifecycle Guide](https://github.com/TheHumanDev/Sushi/blob/master/.github/TRIAGE.md). The guide explains issue labels, acceptance, duplicate handling, regressions, and closure policies.
+
+An accepted issue does not necessarily indicate that implementation has been scheduled.
+
 # Making Changes
 
 Not every contribution requires prior discussion. Small, self-contained improvements, such as documentation corrections, straightforward bug fixes, tests, and minor implementation changes, may be submitted directly through pull requests.
