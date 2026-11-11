@@ -2,7 +2,9 @@
 name: Documentation Issue
 description: Report missing, inaccurate, unclear, or contradictory Sushi documentation.
 title: "[Docs]: "
-labels: "Type: Documentation"
+labels:
+  - "Type: Documentation"
+  - "Status: Needs Triage"
 
 body:
   - type: markdown
