@@ -1,7 +1,9 @@
 name: Implementation Request
 description: Request actionable implementation work within Sushi's established development direction.
 title: "[Implementation]: "
-labels: "Type: Implementation"
+labels:
+  - "Type: Implementation"
+  - "Status: Needs Triage"
 
 body:
   - type: markdown
