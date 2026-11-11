@@ -9,7 +9,7 @@ body:
       value: |
         Thank you for helping improve Sushi.
 
-        Please provde enough information to reproduce and investigate the issue.
+        Please provide enough information to reproduce and investigate the issue.
 
         Do **not** report security vulnerabilities here. Use GitHub's [private vulnerability reporting](https://github.com/TheHumanDev/Sushi/security/advisories) instead.
   - type: input
