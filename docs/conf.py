@@ -38,3 +38,4 @@ html_context = {
     "source_docs_path": "/docs/"
 }
 html_static_path = ["_static"]
+html_logo = "_static/Sushi.png"
