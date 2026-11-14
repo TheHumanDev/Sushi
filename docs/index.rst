@@ -9,7 +9,7 @@ Licensing
 ----------
 Sushi is open source and licensed under Apache 2.0.
 
-Visit the [official GitHub repository](https://github.com/TheHumanDev/Sushi) to follow development or contribute.
+Visit the `official GitHub repository <https://github.com/TheHumanDev/Sushi>`__ to follow development or contribute.
 
 Contents
 --------
