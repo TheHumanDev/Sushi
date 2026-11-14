@@ -33,7 +33,9 @@ html_theme_options = {
 }
 html_context = {
     "source_type": "github",
-    "source_user": "thehumandev",
-    "source_repo": "sushi",
+    "source_user": "TheHumanDev",
+    "source_repo": "Sushi",
+    "source_version": "master",
+    "source_docs_path": "/docs/"
 }
 html_static_path = ['_static']
