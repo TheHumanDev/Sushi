@@ -417,5 +417,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# Sphinx documentation build output
+/docs/_build/
+/.venv/
+
 *.tsbuildinfo
 syntaxes/*.tmLanguage.json
