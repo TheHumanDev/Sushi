@@ -1,7 +1,7 @@
 import sys
-import os
+from pathlib import Path
 
-Path(__file__).resolve().parent / "ext"
+sys.path.insert(0, str(Path(__file__).resolve().parent / "ext"))
 
 from sushi import SushiLexer
 
