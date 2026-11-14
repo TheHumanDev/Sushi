@@ -37,4 +37,3 @@ html_context = {
     "source_repo": "sushi",
 }
 html_static_path = ['_static']
-html_logo = "_static/Sushi.png"
