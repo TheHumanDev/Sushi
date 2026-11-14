@@ -10,8 +10,8 @@ Contributions of all sizes are welcome, from documentation improvements and bug 
 
 Before contributing, please familiarize yourself with the project's
 [README](https://github.com/TheHumanDev/Sushi/blob/master/README.md),
-[Code of Conduct](https://github.com/TheHumanDev/Sushi/blob/master/.github/CODE_OF_CONDUCT.md),
-and [Security Policy](https://github.com/TheHumanDev/Sushi/blob/master/.github/SECURITY.md).
+[Code of Conduct](CODE_OF_CONDUCT.md),
+and [Security Policy](SECURITY.md).
 
 External contributors should fork the repository, create a development branch, and submit a pull request against the official repository. Direct repository write access is reserved for authorized maintainers.
 
@@ -19,7 +19,7 @@ External contributors should fork the repository, create a development branch, a
 
 Use the repository's GitHub Issue Forms to report bugs, documentation problems, or actionable implementation requests.
 
-Maintainers evaluate and prioritize issues according to the [Issue Triage and Lifecycle Guide](https://github.com/TheHumanDev/Sushi/blob/master/.github/TRIAGE.md). The guide explains issue labels, acceptance, duplicate handling, regressions, and closure policies.
+Maintainers evaluate and prioritize issues according to the [Issue Triage and Lifecycle Guide](TRIAGE.md). The guide explains issue labels, acceptance, duplicate handling, regressions, and closure policies.
 
 An accepted issue does not necessarily indicate that implementation has been scheduled.
 
@@ -97,10 +97,10 @@ authorized to contribute.
 
 # Security Vulnerabilities
 Please do not publicly disclose suspected security vulnerabilities through issues, discussions, or pull requests.
-Instead follow the private reporting procedures described in the [Security Policy](https://github.com/TheHumanDev/Sushi/blob/master/.github/SECURITY.md).
+Instead follow the private reporting procedures described in the [Security Policy](SECURITY.md).
 
 # Code of Conduct
-All contributors are expected to follow Sushi's [Code of Conduct](https://github.com/TheHumanDev/Sushi/blob/master/.github/CODE_OF_CONDUCT.md).
+All contributors are expected to follow Sushi's [Code of Conduct](CODE_OF_CONDUCT.md).
 Technical disagreements are welcome. Respectful communication, constructive criticism, and good-faith collaboration are expected.
 
 Thank you for helping us improve Sushi.
