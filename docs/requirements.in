@@ -1,0 +1,11 @@
+﻿# Documentation generator
+sphinx
+
+# Documentation theme
+shibuya
+
+# Markdown support
+myst-parser
+
+# Syntax highlighting and custom Sushi lexer
+pygments
