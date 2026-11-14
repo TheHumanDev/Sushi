@@ -12,5 +12,5 @@ class SushiLexer(RegexLexer):
     flags = re.MULTILINE | re.DOTALL
 
     tokens = {
-        'root': []
+        'root': [(r"[\s\S]+", Text)]
     }
