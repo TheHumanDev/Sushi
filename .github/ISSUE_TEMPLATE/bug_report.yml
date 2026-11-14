@@ -1,0 +1,111 @@
+name: Bug Report
+description: Report a reproducible bug in Sushi or its tooling.
+title: "[Bug]: "
+labels:
+  - "Type: Bug"
+  - "Status: Needs Triage"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Sushi.
+
+        Please provide enough information to reproduce and investigate the issue.
+
+        Do **not** report security vulnerabilities here. Use GitHub's [private vulnerability reporting](https://github.com/TheHumanDev/Sushi/security/advisories) instead.
+  - type: input
+    id: version
+    attributes:
+      label: Sushi Version or Commit
+      description: Specify the affected version or exact commit SHA.
+      placeholder: "Example: v0.2.0-alpha or a commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating System and Architecture
+      description: Specify the operating system, version, and architecture.
+      placeholder: "Example: Windows 11 24H2, x64"
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Select the component most closely related to the bug.
+      options:
+        - Compiler
+        - Language Server
+        - VS Code Extension
+        - Build System
+        - Standard Library
+        - Other / Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Describe the problem and when it occurs.
+      placeholder: Describe the issue clearly and concisely.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide the steps necessary to reproduce the issue.
+        Include relevant commands, configuration, or project setup.
+      placeholder: |
+        1. Create or open...
+        2. Run...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: Describe what Sushi should have done.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: Describe what Sushi actually did.
+    validations:
+      required: true     
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal Reproduction
+      description: |
+        If applicable, provide the smallest Sushi program or project configuration that reproduces the problem.
+        Use Markdown code fences for source examples.
+      placeholder: |
+        ```sushi
+        // Minimal reproducing example
+        ```
+    validations:
+      required: false
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics and Logs
+      description: |
+        Include relevant compiler diagnostics, error messages, stack traces, or logs.
+        Remove sensitive information.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: |
+        Include screenshots, related issues, potential regressions, workarounds, or other useful information.
+    validations:
+      required: false

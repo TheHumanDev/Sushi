@@ -4,8 +4,8 @@
 
 Sushi is currently in early development, and has not published a stable release.
 
-No version currently carries a formal security maintenance or support commitment. However, Security issues may still be
-submitted for pre-release versions, and they will be investigated and corrected during development.
+No version currently carries a formal security maintenance or support commitment. However, security issues may still be
+submitted for pre-release versions, and will be addressed on a best-effort basis during development.
 
 A version-specific security support policy will be established as official releases become available.
 

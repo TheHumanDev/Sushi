@@ -1,0 +1,107 @@
+name: Implementation Request
+description: Request actionable implementation work within Sushi's established development direction.
+title: "[Implementation]: "
+labels:
+  - "Type: Implementation"
+  - "Status: Needs Triage"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Sushi.
+
+        Use this form to identify actionable implementation work,
+        including compiler improvements, missing functionality,
+        refactoring, and maintenance tasks.
+
+        Requests involving new language semantics or substantial
+        architectural decisions should first be discussed and
+        accepted through GitHub Discussions.
+
+        Submitting an implementation request does not constitute
+        approval of the proposed work.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Select the component most closely related to this request.
+      options:
+        - Compiler
+        - Language Server
+        - VS Code Extension
+        - Build System
+        - Standard Library
+        - Documentation
+        - Other / Cross-cutting
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Implementation Summary
+      description: Describe the work being requested.
+      placeholder: |
+        Explain what should be implemented, improved, or refactored.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: |
+        Explain the problem this implementation addresses
+        and why the change would be beneficial.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Expected Outcome and Acceptance Criteria
+      description: |
+        Describe the expected result and the conditions
+        that would demonstrate successful implementation.
+      placeholder: |
+        - Expected behavior or outcome
+        - Important constraints or invariants
+        - Conditions for considering the work complete
+    validations:
+      required: true
+  - type: input
+    id: references
+    attributes:
+      label: Related Issues or Approved Proposals
+      description: |
+        Link relevant issues, discussions, specifications,
+        or approved proposals when applicable.
+      placeholder: "Example: #123 or a GitHub Discussion URL"
+    validations:
+      required: false
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Implementation Considerations
+      description: |
+        Include relevant architecture, compatibility,
+        performance, or implementation constraints.
+        Suggestions are welcome but are not binding.
+    validations:
+      required: false
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Expectations
+      description: |
+        Describe tests, regression scenarios, or other
+        verification that may be needed.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: |
+        Include relevant examples, references, or other
+        information that would help evaluate the request.
+    validations:
+      required: false
