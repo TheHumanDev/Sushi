@@ -25,7 +25,6 @@ extensions = [
 language = "en"
 master_doc = "index"
 source_suffix = { ".rst": "restructuredtext", ".txt": "markdown", ".md": "markdown" }
-templates_path = ["_templates"]
 
 html_theme = "shibuya"
 html_theme_options = {
