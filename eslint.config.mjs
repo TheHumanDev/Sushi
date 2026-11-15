@@ -1,5 +1,4 @@
-﻿// @ts-nocheck
-import js from "@eslint/js";
+﻿import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
 
