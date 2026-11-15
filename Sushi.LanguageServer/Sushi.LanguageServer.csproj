@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <ApplicationIcon>../Sushi.ico</ApplicationIcon>
+   </PropertyGroup>
+    <ItemGroup>
+        <Content Include="../Sushi.ico" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
+    </ItemGroup>
+</Project>

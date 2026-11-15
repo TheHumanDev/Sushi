@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ApplicationIcon>../Sushi.ico</ApplicationIcon>
+    </PropertyGroup>
+    <ItemGroup>
+        <Content Include="../Sushi.ico" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Sushi.Compiler\Sushi.Compiler.csproj" />
+      <ProjectReference Include="..\Sushi.LanguageServer\Sushi.LanguageServer.csproj" />
+    </ItemGroup>
+</Project>
