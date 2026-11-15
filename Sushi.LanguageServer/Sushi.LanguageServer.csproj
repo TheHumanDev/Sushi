@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <ApplicationIcon>../Sushi.ico</ApplicationIcon>
-   </PropertyGroup>
+    </PropertyGroup>
     <ItemGroup>
         <Content Include="../Sushi.ico" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.11" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
