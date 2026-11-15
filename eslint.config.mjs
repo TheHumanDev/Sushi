@@ -1,12 +1,15 @@
 ﻿import js from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
 
-export default tseslint.config(
+export default defineConfig(
 	{
 		ignores: [
 			"**/.vscode-test",
-			"**/out",
+			"**/client/out",
+            "**/docs/_build",
+            "**/.venv"
 		]
 	},
 	js.configs.recommended,
