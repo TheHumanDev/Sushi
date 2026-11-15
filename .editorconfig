@@ -1,6 +1,12 @@
 ﻿# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
+# package.json files
+[package.json]
+# The package.json HAS to be UTF-8 with no byte-order mark or vscode will not load the extension.
+# ... because reasons.
+charset = utf-8
+
 # C# files
 [**/*.cs]
 # Indentation and spacing

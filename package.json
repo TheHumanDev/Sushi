@@ -1,4 +1,4 @@
-﻿{
+{
     "name": "sushi",
     "displayName": "Sushi",
     "description": "Sushi",
@@ -52,7 +52,9 @@
         "compile": "tsc -p client/tsconfig.json",
         "watch": "tsc -p client/tsconfig.json -w",
         "lint": "eslint .",
-        "vscode:prepublish": "npm run generate:syntax && npm run compile"
+        "vscode:prepublish": "npm run generate:syntax && npm run compile",
+        "check:manifest": "node -e \"const fs = require('node:fs'); const text = fs.readFileSync('package.json', 'utf8'); if (text.charCodeAt(0) === 0xFEFF) throw new Error('package.json must be UTF-8 without BOM'); JSON.parse(text);\"",
+        "precompile": "npm run check:manifest"
     },
     "dependencies": {
         "vscode-languageclient": "^9.0.1"
