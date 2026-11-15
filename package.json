@@ -1,0 +1,70 @@
+﻿{
+    "name": "sushi",
+    "displayName": "Sushi",
+    "description": "Sushi",
+    "publisher": "TheHumanDev",
+    "version": "0.1.0",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/TheHumanDev/Sushi"
+    },
+    "engines": {
+        "vscode": "^1.138.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "main": "./client/out/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "sushi",
+                "aliases": [
+                  "Sushi",
+                  "sushi"
+                ],
+                "extensions": [
+                  ".sus"
+                ],
+                "configuration": "./sushi-language-configuration.json",
+                "icon": {
+                  "light": "./Sushi.png",
+                  "dark": "./Sushi.png"
+                }
+            }
+        ],
+        "grammars": [
+            {
+                "language": "sushi",
+                "scopeName": "source.sus",
+                "path": "./syntaxes/sushi.tmLanguage.json",
+                "embeddedLanguages": {
+                    "meta.embedded.block.sus": "sushi"
+                }
+            }
+        ]
+    },
+    "activationEvents": [
+        "workspaceContains:**/*.sus"
+    ],
+    "scripts": {
+        "generate:syntax": "js-yaml syntaxes/sushi.tmLanguage.yml > syntaxes/sushi.tmLanguage.json",
+        "compile": "tsc -p client/tsconfig.json",
+        "watch": "tsc -p client/tsconfig.json -w",
+        "lint": "eslint .",
+        "vscode:prepublish": "npm run generate:syntax && npm run compile"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.5",
+        "@stylistic/eslint-plugin": "^5.10.0",
+        "@types/node": "^22",
+        "@types/vscode": "^1.138.0",
+        "eslint": "^9.39.5",
+        "js-yaml": "^5.4.2",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.70.0"
+    }
+}
