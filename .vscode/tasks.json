@@ -1,0 +1,79 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build: compiler",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "build",
+                "${workspaceFolder}/Sushi/Sushi.csproj",
+                "--configuration",
+                "Debug"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build: extension",
+            "type": "shell",
+            "command": "npm run compile",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$tsc",
+            "dependsOn": "generate: syntax",
+            "dependsOrder": "sequence"
+        },
+        {
+            "label": "generate: syntax",
+            "type": "shell",
+            "command": "npm run generate:syntax",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "watch: extension",
+            "type": "shell",
+            "command": "npm run watch",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": "$tsc-watch",
+            "dependsOn": "generate: syntax",
+            "dependsOrder": "sequence",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "launch: extension host",
+            "type": "shell",
+            "command": "start \"\" \"${execPath}\" --new-window \"${workspaceFolder}/TestProject\" --extensionDevelopmentPath=\"${workspaceFolder}\" --inspect-brk-extensions=5870",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "cmd.exe",
+                    "args": [
+                        "/d",
+                        "/c"
+                    ]
+                }
+            },
+            "problemMatcher": [],
+            "dependsOn": "build: extension",
+            "dependsOrder": "sequence",
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        }
+    ]
+}

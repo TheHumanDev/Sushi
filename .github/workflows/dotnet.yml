@@ -1,0 +1,31 @@
+﻿name: .NET 11
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Install TypeScript dependencies
+        run: npm ci
+      - name: Generate syntax grammars
+        run: npm run generate:syntax
+      - name: Compile VS Code extension
+        run: npm run compile
+      - name: Lint
+        run: npm run lint
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: 11.0.x
+      - name: Restore dependencies
+        run: dotnet restore Sushi.slnx
+      - name: Build
+        run: dotnet build Sushi.slnx --no-restore
+      - name: Test
+        run: dotnet test Sushi.Testing/Sushi.Testing.csproj --no-build --verbosity normal

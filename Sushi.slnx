@@ -1,0 +1,17 @@
+<Solution>
+    <Folder Name="/Sushi/">
+        <Project Path="Sushi/Sushi.csproj" />
+    </Folder>
+    <Folder Name="/Sushi.Compiler/">
+        <Project Path="Sushi.Compiler/Sushi.Compiler.csproj" />
+    </Folder>
+    <Folder Name="/Sushi.Core/">
+        <Project Path="Sushi.Core/Sushi.Core.csproj" />
+    </Folder>
+    <Folder Name="/Sushi.LanguageServer/">
+        <Project Path="Sushi.LanguageServer/Sushi.LanguageServer.csproj" />
+    </Folder>
+    <Folder Name="/Sushi.Testing/">
+        <Project Path="Sushi.Testing/Sushi.Testing.csproj" />
+    </Folder>
+</Solution>

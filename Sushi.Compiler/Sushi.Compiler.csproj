@@ -1,0 +1,5 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
+  </ItemGroup>
+</Project>
