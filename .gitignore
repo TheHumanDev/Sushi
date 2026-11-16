@@ -426,3 +426,4 @@ syntaxes/*.tmLanguage.json
 
 # Generated language server distribution
 /server/
+/vsix/
