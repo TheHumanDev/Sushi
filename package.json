@@ -1,6 +1,6 @@
 {
     "name": "sushi-language",
-    "displayName": "Sushi",
+    "displayName": "Sushi Language Support",
     "description": "Language support for the Sushi programming language.",
     "icon": "Sushi.png",
     "publisher": "TheHumanDev",
