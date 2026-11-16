@@ -2,5 +2,5 @@
 =============================================
 
 .. toctree::
-   Home <self>
-   3.1 Comments <comments>
+    Home <self>
+    3.1 Comments <comments>

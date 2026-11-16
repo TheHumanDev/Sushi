@@ -3,8 +3,8 @@
 
 What Sushi Is
 --------------
-Sushi is intended to be a native, strongly-typed systems programming language with compile-time memory management
-with zero-cost abstractions.
+Sushi is intended to be a native, strongly-typed systems programming language with
+compile-time memory management with zero-cost abstractions.
 
 Safety
 -------
