@@ -10,8 +10,7 @@ import {
     LanguageClient,
     LanguageClientOptions,
     ServerOptions,
-    StreamInfo,
-    TransportKind
+    StreamInfo
 } from 'vscode-languageclient/node';
 
 let client: LanguageClient | undefined;
@@ -55,8 +54,7 @@ function createServerOptions(context: ExtensionContext): ServerOptions {
 
 	const executable: Executable = {
 		command,
-		args: ['-lsp', '-stdio'],
-		transport: TransportKind.stdio
+		args: ['-lsp', '-stdio']
 	};
 
 	return {

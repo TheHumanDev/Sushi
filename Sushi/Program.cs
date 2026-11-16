@@ -89,7 +89,7 @@ internal static class Program
             .WriteTo.Console(
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {Message:lj}{NewLine}{Exception}",
                 theme: AppMeta.ConsoleTheme,
-                applyThemeToRedirectedOutput: true,
+                applyThemeToRedirectedOutput: false,
                 formatProvider: CultureInfo.CurrentCulture,
                 standardErrorFromLevel: LogEventLevel.Verbose)
             .CreateLogger();

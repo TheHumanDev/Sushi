@@ -1,7 +1,8 @@
 {
     "name": "sushi",
     "displayName": "Sushi",
-    "description": "Sushi",
+    "description": "Language support for the Sushi programming language.",
+    "icon": "Sushi.png",
     "publisher": "TheHumanDev",
     "version": "0.1.0",
     "repository": {
@@ -14,22 +15,31 @@
     "categories": [
         "Programming Languages"
     ],
+    "files": [
+        "client/out/**",
+        "server/**",
+        "syntaxes/sushi.tmLanguage.json",
+        "sushi-language-configuration.json",
+        "Sushi.png",
+        "README.md",
+        "LICENSE"
+    ],
     "main": "./client/out/extension",
     "contributes": {
         "languages": [
             {
                 "id": "sushi",
                 "aliases": [
-                  "Sushi",
-                  "sushi"
+                    "Sushi",
+                    "sushi"
                 ],
                 "extensions": [
-                  ".sus"
+                    ".sus"
                 ],
                 "configuration": "./sushi-language-configuration.json",
                 "icon": {
-                  "light": "./Sushi.png",
-                  "dark": "./Sushi.png"
+                    "light": "./Sushi.png",
+                    "dark": "./Sushi.png"
                 }
             }
         ],
@@ -48,13 +58,16 @@
         "workspaceContains:**/*.sus"
     ],
     "scripts": {
-        "generate:syntax": "js-yaml syntaxes/sushi.tmLanguage.yml > syntaxes/sushi.tmLanguage.json",
-        "compile": "tsc -p client/tsconfig.json",
-        "watch": "tsc -p client/tsconfig.json -w",
-        "lint": "eslint .",
-        "vscode:prepublish": "npm run generate:syntax && npm run compile",
         "check:manifest": "node -e \"const fs = require('node:fs'); const text = fs.readFileSync('package.json', 'utf8'); if (text.charCodeAt(0) === 0xFEFF) throw new Error('package.json must be UTF-8 without BOM'); JSON.parse(text);\"",
-        "precompile": "npm run check:manifest"
+        "check-types": "tsc -p client/tsconfig.json --noEmit",
+        "bundle": "esbuild client/src/extension.ts --bundle --platform=node --format=cjs --target=node20 --external:vscode --outfile=client/out/extension.js --sourcemap",
+        "compile": "npm run check-types && npm run bundle",
+        "precompile": "npm run check:manifest",
+        "watch": "npm run bundle -- --watch",
+        "generate:syntax": "js-yaml syntaxes/sushi.tmLanguage.yml > syntaxes/sushi.tmLanguage.json",
+        "lint": "eslint .",
+        "vscode:prepublish": "npm run compile && npm run generate:syntax",
+        "package:vsix": "node scripts/package-vsix.mjs"
     },
     "dependencies": {
         "vscode-languageclient": "^9.0.1"
@@ -64,6 +77,8 @@
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/node": "^22",
         "@types/vscode": "^1.138.0",
+        "@vscode/vsce": "^4.1.1",
+        "esbuild": "^0.28.2",
         "eslint": "^9.39.5",
         "js-yaml": "^5.4.2",
         "typescript": "^5.9.3",
