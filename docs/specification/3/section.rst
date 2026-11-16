@@ -2,5 +2,4 @@
 =============================================
 
 .. toctree::
-   Home <self>
-   3.1 Comments <comments>
+    3.1 Comments <comments>

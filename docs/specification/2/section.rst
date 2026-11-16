@@ -2,4 +2,4 @@
 =============================================
 
 .. toctree::
-   Home <self>
+    2.1 Source Encoding <source-encoding>
