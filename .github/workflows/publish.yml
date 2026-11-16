@@ -67,3 +67,65 @@ jobs:
           }
               
           npm exec -- vsce publish --oidc --packagePath $packagePath
+  release:
+    name: Publish GitHub Release
+    needs: publish
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Download VSIX
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: sushi-win32-x64
+          path: vsix
+
+      - name: Generate checksum manifest
+        shell: pwsh
+        run: |
+          $packages = @(Get-ChildItem vsix -Filter "*.vsix")
+
+          if ($packages.Count -ne 1) {
+              throw "Expected exactly one VSIX, found $($packages.Count)."
+          }
+
+          $package = $packages[0]
+          $hash = (Get-FileHash $package.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($package.Name)" | Set-Content vsix/SHA256SUMS -Encoding ascii
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $manifest = Get-Content package.json -Raw | ConvertFrom-Json
+          $properties = Get-Content Directory.Build.props -Raw
+          $version = [regex]::Match($properties, '<Version>\s*([^<]+)</Version>').Groups[1].Value
+
+          if (-not $version) {
+              throw "Unable to determine Sushi assembly version."
+          }
+
+          $tag = "v$version"
+          $packagePath = "vsix/$($manifest.name)-win32-x64-$($manifest.version).vsix"
+          $notesPath = ".github/release-notes/$tag.md"
+
+          if (-not (Test-Path $packagePath)) {
+              throw "VSIX not found: $packagePath"
+          }
+
+          if (-not (Test-Path $notesPath)) {
+              throw "Release notes not found: $notesPath"
+          }
+
+          gh release create $tag $packagePath "vsix/SHA256SUMS" `
+              --target $env:GITHUB_SHA `
+              --title "Sushi $tag" `
+              --notes-file $notesPath `
+              --prerelease `
+              --latest=false
