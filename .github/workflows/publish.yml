@@ -56,15 +56,14 @@ jobs:
           name: sushi-win32-x64
           path: vsix/*.vsix
           if-no-files-found: error
-
       - name: Publish to VS Code Marketplace
         shell: pwsh
         run: |
-          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          $packagePath = "vsix/sushi-win32-x64-$version.vsix"
-
+          $manifest = Get-Content package.json -Raw | ConvertFrom-Json
+          $packagePath = "vsix/$($manifest.name)-win32-x64-$($manifest.version).vsix"
+              
           if (-not (Test-Path $packagePath)) {
               throw "VSIX not found: $packagePath"
           }
-
+              
           npm exec -- vsce publish --oidc --packagePath $packagePath
