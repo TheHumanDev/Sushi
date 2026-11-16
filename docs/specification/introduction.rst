@@ -23,8 +23,6 @@ Therefore, it will often get well into the weeds of minutiae, and should not be 
 a guide to start with. For a guide, see the :doc:`Home <../index>` page.
 
 .. toctree::
-
-    Home <self>
     1. Core Design Goals and Terminology <1/section>
     2. Source Text <2/section>
     3. Lexical Structure <3/section>
