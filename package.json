@@ -31,16 +31,16 @@
             {
                 "id": "sushi",
                 "aliases": [
-                  "Sushi",
-                  "sushi"
+                    "Sushi",
+                    "sushi"
                 ],
                 "extensions": [
-                  ".sus"
+                    ".sus"
                 ],
                 "configuration": "./sushi-language-configuration.json",
                 "icon": {
-                  "light": "./Sushi.png",
-                  "dark": "./Sushi.png"
+                    "light": "./Sushi.png",
+                    "dark": "./Sushi.png"
                 }
             }
         ],
@@ -75,6 +75,8 @@
         "@stylistic/eslint-plugin": "^5.10.0",
         "@types/node": "^22",
         "@types/vscode": "^1.138.0",
+        "@vscode/vsce": "^4.1.1",
+        "esbuild": "^0.28.2",
         "eslint": "^9.39.5",
         "js-yaml": "^5.4.2",
         "typescript": "^5.9.3",
