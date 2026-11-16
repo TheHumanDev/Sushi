@@ -1,7 +1,8 @@
 {
     "name": "sushi",
     "displayName": "Sushi",
-    "description": "Sushi",
+    "description": "Language support for the Sushi programming language.",
+    "icon": "Sushi.png",
     "publisher": "TheHumanDev",
     "version": "0.1.0",
     "repository": {
@@ -13,6 +14,16 @@
     },
     "categories": [
         "Programming Languages"
+    ],
+    "files": [
+        "client/out/**",
+        "server/**",
+        "syntaxes/sushi.tmLanguage.json",
+        "sushi-language-configuration.json",
+        "Sushi.png",
+        "node_modules/**",
+        "README.md",
+        "LICENSE"
     ],
     "main": "./client/out/extension",
     "contributes": {
