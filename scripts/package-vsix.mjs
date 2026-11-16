@@ -1,4 +1,5 @@
-﻿import { execSync } from "node:child_process";
+﻿import console from "node:console";
+import { execSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
