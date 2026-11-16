@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <ApplicationIcon>../Sushi.ico</ApplicationIcon>
+    </PropertyGroup>
+    <ItemGroup>
+        <Content Include="../Sushi.ico" />
+    </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Sushi.Testing" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Serilog" Version="4.4.0" />
+    </ItemGroup>
+</Project>

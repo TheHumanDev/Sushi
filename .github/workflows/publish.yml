@@ -1,0 +1,70 @@
+﻿
+name: Publish Sushi VS Code Extension
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sushi-marketplace-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish Windows x64 pre-release
+    if: github.ref == 'refs/heads/v0.1.0-alpha'
+    runs-on: windows-latest
+    environment: marketplace
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: 11.0.x
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Verify VSCE version
+        shell: pwsh
+        run: |
+          npm exec -- vsce --version
+
+      - name: Lint extension
+        run: npm run lint
+
+      - name: Test Sushi
+        run: dotnet test Sushi.Testing/Sushi.Testing.csproj -c Release
+
+      - name: Build VSIX
+        run: npm run package:vsix
+
+      - name: Archive VSIX
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sushi-win32-x64
+          path: vsix/*.vsix
+          if-no-files-found: error
+
+      - name: Publish to VS Code Marketplace
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $packagePath = "vsix/sushi-win32-x64-$version.vsix"
+
+          if (-not (Test-Path $packagePath)) {
+              throw "VSIX not found: $packagePath"
+          }
+
+          npm exec -- vsce publish --oidc --packagePath $packagePath

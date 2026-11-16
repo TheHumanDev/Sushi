@@ -1,0 +1,62 @@
+{
+    "version": "0.2.0",
+    "configurations":[
+        {
+            "name": "Sushi: LSP Server",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: compiler",
+            "program": "${workspaceFolder}/Sushi/bin/Debug/net11.0/win-x64/Sushi.dll",
+            "args": [
+                "-lsp",
+                "--tcp",
+                "127.0.0.1:5057"
+            ],
+            "cwd": "${workspaceFolder}/Sushi",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Sushi: Extension and LSP",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: compiler",
+            "program": "${workspaceFolder}/Sushi/bin/Debug/net11.0/win-x64/Sushi.dll",
+            "args": [
+                "-lsp",
+                "--tcp",
+                "127.0.0.1:5057"
+            ],
+            "cwd": "${workspaceFolder}/Sushi",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "pattern": "Listening for LSP client",
+                "action": "startDebugging",
+                "name": "Sushi: VS Code Extension"
+            }
+        },
+        {
+            "name": "Sushi: VS Code Extension",
+            "type": "node",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 5870,
+            "continueOnAttach": true,
+            "timeout": 30000,
+            "outFiles": [
+                "${workspaceFolder}/client/out/**/*.js"
+            ],
+            "preLaunchTask": "launch: extension host"
+        },
+        {
+            "name": "Sushi: Package VSIX (Windows x64)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/package-vsix.mjs",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}

@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -30,11 +31,16 @@ html_theme = "shibuya"
 html_theme_options = {
     "accent_color": "pink",
 }
+source_version = (
+    os.environ.get("READTHEDOCS_GIT_COMMIT_HASH")
+    if os.environ.get("READTHEDOCS_VERSION_TYPE") == "external"
+    else os.environ.get("READTHEDOCS_GIT_IDENTIFIER")
+) or "v0.1.0-alpha"
 html_context = {
     "source_type": "github",
     "source_user": "TheHumanDev",
     "source_repo": "Sushi",
-    "source_version": "master",
+    "source_version": source_version,
     "source_docs_path": "/docs/"
 }
 html_static_path = ["_static"]
