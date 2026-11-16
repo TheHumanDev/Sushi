@@ -17,3 +17,4 @@ Contents
 .. toctree::
 
    Home <self>
+   Sushi Language Specification <specification/introduction>

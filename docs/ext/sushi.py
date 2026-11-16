@@ -2,7 +2,7 @@
 import re
 
 from pygments.lexer import RegexLexer, bygroups, include, using, this, default, words
-from pygments.token import *
+from pygments.token import * # type: ignore
 
 class SushiLexer(RegexLexer):
     name = 'Sushi'
@@ -12,5 +12,14 @@ class SushiLexer(RegexLexer):
     flags = re.MULTILINE | re.DOTALL
 
     tokens = {
-        'root': [(r"[\s\S]+", Text)]
+        'root': [
+            (r'//.*?\n', Token.Comment.Single),
+            (r'/\*', Token.Comment.Multiline, 'comment'),
+        ],
+        'comment': [
+            (r'[^*/]+', Token.Comment.Multiline),
+            (r'/\*', Token.Comment.Multiline, '#push'),
+            (r'\*/', Token.Comment.Multiline, '#pop'),
+            (r'[*/]', Token.Comment.Multiline),
+        ]
     }
