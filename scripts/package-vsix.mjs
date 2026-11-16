@@ -5,7 +5,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const packageVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const packageVersion = manifest.version;
+const packageName = manifest.name;
 const projectProperties = readFileSync(join(root, "Directory.Build.props"), "utf8");
 const assemblyVersion = projectProperties.match(/<Version>\s*([^<\s]+)\s*<\/Version>/)?.[1];
 
@@ -20,7 +22,7 @@ for (const relativePath of ["server", "client/out", "syntaxes/sushi.tmLanguage.j
 mkdirSync(join(root, "vsix"), { recursive: true });
 
 run("dotnet publish Sushi/Sushi.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o server");
-run(`npm exec -- vsce package --pre-release --target win32-x64 --no-dependencies --githubBranch v${assemblyVersion} --out vsix/sushi-win32-x64-${packageVersion}.vsix`);
+run(`npm exec -- vsce package --pre-release --target win32-x64 --no-dependencies --githubBranch v${assemblyVersion} --out vsix/${packageName}-win32-x64-${packageVersion}.vsix`);
 
 function run(command) {
     console.log(`\n> ${command}`);
