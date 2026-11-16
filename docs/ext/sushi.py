@@ -13,8 +13,10 @@ class SushiLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'//.*?\n', Token.Comment.Single),
+            (r"//[^\r\n]*", Comment.Single),
             (r'/\*', Token.Comment.Multiline, 'comment'),
+            (r"[^/]+", Text),
+            (r"/", Text)
         ],
         'comment': [
             (r'[^*/]+', Token.Comment.Multiline),
