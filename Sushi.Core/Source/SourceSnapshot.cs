@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Sushi.Core.Source;
@@ -10,7 +11,7 @@ public sealed class SourceSnapshot
 {
     private readonly byte[] bytes;
 
-    private readonly int[] lineStarts;
+    private readonly ReadOnlyCollection<int> lineStarts;
 
     /// <summary>
     /// The document <see cref="System.Uri"/>. This is not always
@@ -151,7 +152,7 @@ public sealed class SourceSnapshot
     /// <returns>
     /// An <see cref="int[]"/> containing the line starts.
     /// </returns>
-    private static int[] BuildLineStarts(ReadOnlySpan<byte> bytes)
+    private static ReadOnlyCollection<int> BuildLineStarts(ReadOnlySpan<byte> bytes)
     {
         List<int> starts = [0];
 
@@ -173,6 +174,6 @@ public sealed class SourceSnapshot
             }
         }
 
-        return [.. starts];
+        return new ReadOnlyCollection<int>(starts);
     }
 }
