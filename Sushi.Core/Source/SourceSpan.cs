@@ -39,11 +39,6 @@ public readonly record struct SourceSpan
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
-        if (start > end)
-        {
-            throw new ArgumentOutOfRangeException(nameof(end), "End offset cannot be lower than start offset.");
-        }
-
         if (start < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(start), "Start offset cannot be lower than 0.");
@@ -52,6 +47,21 @@ public readonly record struct SourceSpan
         if (end < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(start), "End offset cannot be lower than 0.");
+        }
+
+        if (start > end)
+        {
+            throw new ArgumentOutOfRangeException(nameof(end), "End offset cannot be lower than start offset.");
+        }
+
+        if (snapshot.SourceLength < start)
+        {
+            throw new ArgumentOutOfRangeException(nameof(end), "Start offset is out of bounds of the SourceSnapshot.");
+        }
+
+        if (snapshot.SourceLength < end)
+        {
+            throw new ArgumentOutOfRangeException(nameof(end), "End offset is out of bounds of the SourceSnapshot.");
         }
 
         this.Snapshot = snapshot;
