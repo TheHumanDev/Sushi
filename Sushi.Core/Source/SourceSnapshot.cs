@@ -78,7 +78,7 @@ public sealed class SourceSnapshot
     /// <returns>
     /// The <see cref="SourceSnapshot"/> created from the source.
     /// </returns>
-    public static SourceSnapshot FromUtf8([NotNull] Uri uri, int? version, ReadOnlySpan<byte> source)
+    public static SourceSnapshot FromUTF8([NotNull] Uri uri, int? version, ReadOnlySpan<byte> source)
     {
         ArgumentNullException.ThrowIfNull(uri);
 
