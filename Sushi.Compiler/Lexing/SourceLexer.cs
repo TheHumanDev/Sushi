@@ -16,7 +16,7 @@ public sealed class SourceLexer : ILexer
     ]);
 
     /// <inheritdoc />
-    public async Task<LexResult> Lex([NotNull] SourceSnapshot snapshot, CancellationToken cancellationToken)
+    public Task<LexResult> Lex([NotNull] SourceSnapshot snapshot, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -43,7 +43,7 @@ public sealed class SourceLexer : ILexer
             position = unknownEnd;
         }
 
-        return new LexResult(snapshot, [.. tokens]);
+        return Task.FromResult(new LexResult(snapshot, [.. tokens]));
     }
 
     /// <summary>
