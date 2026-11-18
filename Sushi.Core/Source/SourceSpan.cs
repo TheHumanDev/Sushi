@@ -26,13 +26,13 @@ public readonly record struct SourceSpan
     /// <summary>
     /// Creates a new instance of <see cref="SourceSpan"/>.
     /// </summary>
-    /// <param name="Snapshot">
+    /// <param name="snapshot">
     /// The <see cref="SourceSnapshot" /> that this span originated from.
     /// </param>
-    /// <param name="Start">
+    /// <param name="start">
     /// The inclusive starting byte offset.
     /// </param>
-    /// <param name="End">
+    /// <param name="end">
     /// The exclusive ending byte offset.
     /// </param>
     public SourceSpan([NotNull] SourceSnapshot snapshot, int start, int end)
@@ -46,7 +46,7 @@ public readonly record struct SourceSpan
 
         if (end < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(start), "End offset cannot be lower than 0.");
+            throw new ArgumentOutOfRangeException(nameof(end), "End offset cannot be lower than 0.");
         }
 
         if (start > end)
@@ -56,7 +56,7 @@ public readonly record struct SourceSpan
 
         if (snapshot.SourceLength < start)
         {
-            throw new ArgumentOutOfRangeException(nameof(end), "Start offset is out of bounds of the SourceSnapshot.");
+            throw new ArgumentOutOfRangeException(nameof(start), "Start offset is out of bounds of the SourceSnapshot.");
         }
 
         if (snapshot.SourceLength < end)
