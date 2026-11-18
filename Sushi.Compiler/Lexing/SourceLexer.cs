@@ -43,7 +43,7 @@ public sealed class SourceLexer : ILexer
             position = unknownEnd;
         }
 
-        return Task.FromResult(new LexResult(snapshot, [.. tokens]));
+        return Task.FromResult(new LexResult(snapshot, new ReadOnlyCollection<LexToken>(tokens)));
     }
 
     /// <summary>
