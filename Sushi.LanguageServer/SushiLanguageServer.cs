@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Sushi.LanguageServer.Handlers;
 using LSP = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
 namespace Sushi.LanguageServer;
@@ -93,6 +94,7 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
     /// </returns>
     private async Task RunLanguageServer(Stream input, Stream output, string version)
     {
+        WorkspaceOrchestrator workspace = new();
         using LSP server = await LSP.From(options => options
             .WithInput(input)
             .WithOutput(output)
@@ -101,15 +103,16 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
                 Name = "Sushi",
                 Version = version
             })
-            .WithServices(services => services.AddSingleton(this))
+            .OnInitialize((server, request, token) => workspace.Initialize([.. request.WorkspaceFolders ?? []], token))
+            .OnStarted((server, token) => workspace.Start(server, token))
+            .WithServices(services =>
+            {
+                services.AddSingleton(this);
+                services.AddSingleton(workspace);
+            })
+            .WithHandler<WorkspaceFoldersHandler>()
         );
 
-        try
-        {
-            await server.WaitForExit;
-        }
-        finally
-        {
-        }
+        await server.WaitForExit;
     }
 }
