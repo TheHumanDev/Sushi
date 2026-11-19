@@ -9,6 +9,9 @@ namespace Sushi.Core.Source;
 /// </summary>
 public sealed class SourceDocument
 {
+    /// <summary>
+    /// Synchronizes access to the source document.
+    /// </summary>
     private readonly Lock syncRoot = new();
 
     /// <summary>
@@ -21,7 +24,14 @@ public sealed class SourceDocument
     /// </summary>
     private SourceSnapshot? editorSnapshot;
 
+    /// <summary>
+    /// The current analysis result for the source document.
+    /// </summary>
     private AnalysisResult? analysis;
+
+    /// <summary>
+    /// The current accumulated diagnostics for the source document.
+    /// </summary>
     private IReadOnlyList<SushiDiagnostic>? diagnostics;
 
     /// <summary>
