@@ -1,4 +1,4 @@
-﻿namespace Sushi.Compiler.Diagnostics;
+﻿namespace Sushi.Core.Diagnostics;
 
 /// <summary>
 /// Represents a type of warning in Sushi.

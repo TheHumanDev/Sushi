@@ -1,4 +1,4 @@
-﻿using Sushi.Compiler.Diagnostics;
+﻿using Sushi.Core.Diagnostics;
 
 namespace Sushi.Compiler.Lexing.Tokenization;
 

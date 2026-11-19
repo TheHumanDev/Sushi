@@ -1,6 +1,6 @@
 ﻿using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Diagnostics;
+namespace Sushi.Core.Diagnostics;
 
 /// <summary>
 /// Handles diagnostic reporting such as generating and accumulating diagnostics,

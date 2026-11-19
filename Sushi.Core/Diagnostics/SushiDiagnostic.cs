@@ -1,6 +1,6 @@
 ﻿using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Diagnostics;
+namespace Sushi.Core.Diagnostics;
 
 /// <summary>
 /// Represents a diagnostic message from any point in the compiler pipeline that should be reported.

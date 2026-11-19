@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Diagnostics;

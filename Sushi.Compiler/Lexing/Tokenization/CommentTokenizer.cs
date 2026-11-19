@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Lexing.Tokenization;
