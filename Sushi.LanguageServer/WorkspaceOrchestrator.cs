@@ -7,7 +7,7 @@ namespace Sushi.LanguageServer;
 /// <summary>
 /// Handles the orchestration and plumbing of source document tracking.
 /// </summary>
-public sealed class WorkspaceOrchestrator
+public sealed class WorkspaceOrchestrator : IDisposable
 {
     /// <summary>
     /// The workspace folders from the client. Contains the sushi project files when running in LSP mode.
@@ -88,5 +88,11 @@ public sealed class WorkspaceOrchestrator
                 this.folders.Add(addedFolder);
             }
         }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        
     }
 }

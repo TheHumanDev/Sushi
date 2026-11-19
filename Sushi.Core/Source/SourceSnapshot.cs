@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Buffers;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -10,8 +11,8 @@ namespace Sushi.Core.Source;
 public sealed class SourceSnapshot
 {
     private readonly byte[] bytes;
-
     private readonly ReadOnlyCollection<int> lineStarts;
+    private readonly ReadOnlyCollection<SourceEncodingIssue> encodingIssues;
 
     /// <summary>
     /// The document <see cref="System.Uri"/>. This is not always
@@ -47,6 +48,16 @@ public sealed class SourceSnapshot
     /// </summary>
     public IReadOnlyList<int> LineStarts => this.lineStarts;
 
+    /// <summary>
+    /// Malformed UTF-8 byte sequences present in the source.
+    /// </summary>
+    public IReadOnlyList<SourceEncodingIssue> EncodingIssues => this.encodingIssues;
+
+    /// <summary>
+    /// Whether the canonical source is valid UTF-8.
+    /// </summary>
+    public bool IsValidUtf8 => this.encodingIssues.Count == 0;
+ 
     private SourceSnapshot([NotNull] Uri uri, int? version, [NotNull] byte[] bytes)
     {
         ArgumentNullException.ThrowIfNull(uri);
@@ -54,6 +65,8 @@ public sealed class SourceSnapshot
         this.Uri = uri;
         this.Version = version;
         this.bytes = bytes;
+
+        this.encodingIssues = FindEncodingIssues(this.bytes);
 
         // This is intentionally a lossy convenience view when malformed
         // UTF-8 exists. The byte array above remains authoritative.
@@ -144,13 +157,50 @@ public sealed class SourceSnapshot
     }
 
     /// <summary>
+    /// Finds all the encoding issues within the source bytes.
+    /// </summary>
+    /// <param name="source">
+    /// The source bytes.
+    /// </param>
+    /// <returns>
+    /// The list of found <see cref="SourceEncodingIssue"/> objects.
+    /// </returns>
+    private static ReadOnlyCollection<SourceEncodingIssue> FindEncodingIssues(ReadOnlySpan<byte> source)
+    {
+        List<SourceEncodingIssue> issues = [];
+
+        int position = 0;
+
+        while (position < source.Length)
+        {
+            OperationStatus status = Rune.DecodeFromUtf8(source[position..], out _, out int bytesConsumed);
+
+            if (status == OperationStatus.Done)
+            {
+                position += bytesConsumed;
+
+                continue;
+            }
+
+            // Rune.DecodeFromUtf8 reports how many bytes belong to the malformed or incomplete sequence.
+            int length = Math.Max(bytesConsumed, 1);
+
+            issues.Add(new SourceEncodingIssue(position, length));
+
+            position += length;
+        }
+
+        return new ReadOnlyCollection<SourceEncodingIssue>(issues);
+    }
+
+    /// <summary>
     /// Builds the line starts from the source bytes.
     /// </summary>
     /// <param name="bytes">
     /// The source span of the bytes.
     /// </param>
     /// <returns>
-    /// An <see cref="int[]"/> containing the line starts.
+    /// An <see cref="ReadOnlyCollection{T}"/> of <see cref="int"/> values containing the line starts.
     /// </returns>
     private static ReadOnlyCollection<int> BuildLineStarts(ReadOnlySpan<byte> bytes)
     {
@@ -175,5 +225,118 @@ public sealed class SourceSnapshot
         }
 
         return new ReadOnlyCollection<int>(starts);
+    }
+
+    /// <summary>
+    /// Resolves a validated UTF-16 editor position to canonical UTF-8 bytes.
+    /// Line terminators are excluded from line content; surrogate-pair interiors are not valid positions.
+    /// </summary>
+    /// <param name="line">
+    /// The zero-based logical line.
+    /// </param>
+    /// <param name="character">
+    /// The zero-based UTF-16 character offset within that line.
+    /// </param>
+    /// <returns>
+    /// The corresponding byte boundary in this snapshot.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The position is outside the source or splits a supplementary Unicode scalar.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Malformed UTF-8 prevents exact coordinate conversion.
+    /// </exception>
+    public int GetByteOffset(int line, int character)
+    {
+        if (line < 0 || line >= this.lineStarts.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(line));
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(character);
+        if (!this.IsValidUtf8)
+        {
+            throw new InvalidOperationException("Editor positions cannot be resolved in malformed UTF-8 source.");
+        }
+
+        int position = this.lineStarts[line];
+        int end = line + 1 < this.lineStarts.Count ? this.lineStarts[line + 1] : this.bytes.Length;
+        if (end > position && this.bytes[end - 1] == (byte)'\n')
+        {
+            end--;
+        }
+
+        if (end > position && this.bytes[end - 1] == (byte)'\r')
+        {
+            end--;
+        }
+
+        int characters = 0;
+        while (position < end && characters < character)
+        {
+            OperationStatus status = Rune.DecodeFromUtf8(this.bytes.AsSpan(position, end - position), out Rune rune, out int consumed);
+            if (status != OperationStatus.Done)
+            {
+                throw new InvalidOperationException("Editor position does not resolve to a complete Unicode scalar.");
+            }
+
+            if (rune.Utf16SequenceLength > character - characters)
+            {
+                throw new ArgumentException("Editor position splits a UTF-16 surrogate pair.", nameof(character));
+            }
+
+            characters += rune.Utf16SequenceLength;
+            position += consumed;
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNotEqual(characters, character, nameof(character));
+
+        return position;
+    }
+
+    /// <summary>
+    /// Gets the UTF-16 position from a byte offset.
+    /// </summary>
+    /// <param name="byteOffset">
+    /// The byte offset to translate into a UTF-16 position.
+    /// </param>
+    /// <returns>
+    /// The line and character of the UTF-16 position.
+    /// </returns>
+    public (int Line, int Character) GetUtf16Position(int byteOffset)
+    {
+        if (byteOffset < 0 || byteOffset > this.bytes.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(byteOffset));
+        }
+
+        int low = 0;
+        int high = this.lineStarts.Count - 1;
+        int line = 0;
+
+        while (low <= high)
+        {
+            int middle = low + ((high - low) / 2);
+
+            if (this.lineStarts[middle] <= byteOffset)
+            {
+                line = middle;
+                low = middle + 1;
+            }
+            else
+            {
+                high = middle - 1;
+            }
+        }
+
+        int lineStart = this.lineStarts[line];
+
+        ReadOnlySpan<byte> prefix = this.bytes.AsSpan(lineStart, byteOffset - lineStart);
+
+        // Replacement decoding is intentional here.
+        // LSP coordinates are UTF-16 coordinates, not byte offsets.
+        int character = Encoding.UTF8.GetString(prefix).Length;
+
+        return (line, character);
     }
 }

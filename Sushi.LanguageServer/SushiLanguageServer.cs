@@ -113,6 +113,13 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
             .WithHandler<WorkspaceFoldersHandler>()
         );
 
-        await server.WaitForExit;
+        try
+        {
+            await server.WaitForExit;
+        }
+        finally
+        {
+            workspace.Dispose();
+        }
     }
 }

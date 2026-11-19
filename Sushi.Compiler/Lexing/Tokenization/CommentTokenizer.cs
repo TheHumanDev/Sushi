@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Sushi.Compiler.Diagnostics;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Lexing.Tokenization;
 
 /// <summary>
-/// Recognizes line and block comments. 
+/// Recognizes line and nested block comments. 
 /// </summary>
 public sealed class CommentTokenizer : ILexTokenizer
 {
@@ -34,7 +35,7 @@ public sealed class CommentTokenizer : ILexTokenizer
 
         if (bytes[position + 1] == (byte)'*')
         {
-            match = RecognizeBlockComment(bytes, position, cancellationToken);
+            match = RecognizeBlockComment(snapshot, bytes, position, cancellationToken);
             return true;
         }
 
@@ -78,8 +79,12 @@ public sealed class CommentTokenizer : ILexTokenizer
     }
 
     /// <summary>
-    /// Recognizes a block comment.
+    /// Recognizes a possibly nested block comment and reports an unterminated
+    /// comment when the source ends before the nesting depth returns to zero.
     /// </summary>
+    /// <param name="snapshot">
+    /// The source snapshot containing the comment.
+    /// </param>
     /// <param name="bytes">
     /// The canonical source bytes being tokenized.
     /// </param>
@@ -90,9 +95,9 @@ public sealed class CommentTokenizer : ILexTokenizer
     /// The token used to cancel lexical analysis.
     /// </param>
     /// <returns>
-    /// The recognized block-comment match.
+    /// The recognized block-comment match, including any diagnostic produced by an unterminated comment.
     /// </returns>
-    private static LexTokenMatch RecognizeBlockComment(ReadOnlySpan<byte> bytes, int position, CancellationToken cancellationToken)
+    private static LexTokenMatch RecognizeBlockComment([NotNull] SourceSnapshot snapshot, ReadOnlySpan<byte> bytes, int position, CancellationToken cancellationToken)
     {
         int end = position + 2;
         int depth = 1;
@@ -124,11 +129,14 @@ public sealed class CommentTokenizer : ILexTokenizer
             end++;
         }
 
-        return new LexTokenMatch(LexTokenType.BlockComment, end - position);
+        DiagnosticReporter diagnosticReporter = new();
+        diagnosticReporter.GenerateError(ErrorType.UnterminatedBlockComment, new SourceSpan(snapshot, position, position + 2));
+
+        return new LexTokenMatch(LexTokenType.BlockComment, end - position, diagnosticReporter);
     }
 
     /// <summary>
-    /// Determines whether a block comment begins at the specified byte position.
+    /// Determines whether a nested block comment begins at the specified byte position.
     /// </summary>
     /// <param name="bytes">
     /// The canonical source bytes being inspected.

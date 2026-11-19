@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Sushi.Compiler.Diagnostics;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Lexing;
@@ -14,11 +15,15 @@ public interface ILexer
     /// <param name="snapshot">
     /// The snapshot of the source document.
     /// </param>
+    /// <param name="DiagnosticReporter">
+    /// The root diagnostic reporter used to accumulate diagnostics
+    /// produced during the pass.
+    /// </param>
     /// <param name="cancellationToken">
     /// The token used to cancel lexical analysis.
     /// </param>
     /// <returns>
     /// An awaitable <see cref="Task" /> that returns the <see cref="LexResult"/>.
     /// </returns>
-    public Task<LexResult> Lex([NotNull] SourceSnapshot snapshot, CancellationToken cancellationToken);
+    public Task<LexResult> Lex([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken);
 }

@@ -10,4 +10,8 @@ public enum ErrorType
     #region Core Errors
     InvalidUtf8 = 1,
     #endregion Core Errors
+
+    #region Syntax Errors
+    UnterminatedBlockComment = 201,
+    #endregion Syntax Errors
 }

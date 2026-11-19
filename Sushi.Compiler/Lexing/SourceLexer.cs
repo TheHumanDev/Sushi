@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Lexing.Tokenization;
 using Sushi.Core.Source;
 
@@ -16,13 +17,17 @@ public sealed class SourceLexer : ILexer
     ]);
 
     /// <inheritdoc />
-    public Task<LexResult> Lex([NotNull] SourceSnapshot snapshot, CancellationToken cancellationToken)
+    public Task<LexResult> Lex([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(diagnosticReporter);
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        IDiagnosticReporter localDiagnostics = new DiagnosticReporter();
+
         List<LexToken> tokens = [];
+        int encodingIssueIndex = 0;
         
         int position = 0;
         
@@ -30,18 +35,26 @@ public sealed class SourceLexer : ILexer
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (TryCommitEncodingIssue(snapshot, position, ref encodingIssueIndex, tokens, out int encodingIssueEnd))
+            {
+                position = encodingIssueEnd;
+                continue;
+            }
+
             if (TryGetBestMatch(snapshot, position, cancellationToken, out LexTokenMatch match))
             {
-                position = CommitMatch(snapshot, position, match, tokens);
+                position = CommitMatch(snapshot, position, match, tokens, localDiagnostics, ref encodingIssueIndex);
 
                 continue;
             }
 
-            int unknownEnd = FindUnknownEnd(snapshot, position, cancellationToken);
+            int unknownEnd = FindUnknownEnd(snapshot, position, encodingIssueIndex, cancellationToken);
 
             tokens.Add(new LexToken(LexTokenType.Unknown, new SourceSpan(snapshot, position, unknownEnd)));
             position = unknownEnd;
         }
+
+        diagnosticReporter.CommitReporter(localDiagnostics);
 
         return Task.FromResult(new LexResult(snapshot, new ReadOnlyCollection<LexToken>(tokens)));
     }
@@ -116,24 +129,62 @@ public sealed class SourceLexer : ILexer
     /// <param name="tokens">
     /// The token stream receiving the recognized lexical element.
     /// </param>
+    /// <param name="diagnosticReporter">
+    /// The diagnostic reporter that contains the accumulated diagnostics.
+    /// </param>
+    /// <param name="encodingIssueIndex">
+    /// The index of the next uncommitted encoding issue.
+    /// </param>
     /// <returns>
     /// The canonical byte position at which lexical analysis should continue.
     /// </returns>
-    private static int CommitMatch(SourceSnapshot snapshot, int position, LexTokenMatch match, List<LexToken> tokens)
+    private static int CommitMatch(SourceSnapshot snapshot, int position, LexTokenMatch match, List<LexToken> tokens, IDiagnosticReporter diagnosticReporter, ref int encodingIssueIndex)
     {
         int matchEnd = position + match.Length;
         int segmentStart = position;
+
+        while (encodingIssueIndex < snapshot.EncodingIssues.Count)
+        {
+            SourceEncodingIssue issue = snapshot.EncodingIssues[encodingIssueIndex];
+
+            if (issue.Start >= matchEnd)
+            {
+                break;
+            }
+
+            if (issue.End <= segmentStart)
+            {
+                encodingIssueIndex++;
+                continue;
+            }
+
+            if (issue.Start > segmentStart)
+            {
+                tokens.Add(new LexToken(match.Type, new SourceSpan(snapshot, segmentStart, issue.Start)));
+            }
+
+            tokens.Add(new LexToken(LexTokenType.Unknown, new SourceSpan(snapshot, Math.Max(segmentStart, issue.Start), issue.End)));
+            
+            segmentStart = issue.End;
+            encodingIssueIndex++;
+        }
 
         if (segmentStart < matchEnd)
         {
             tokens.Add(new LexToken(match.Type, new SourceSpan(snapshot, segmentStart, matchEnd)));
         }
 
+        if (match.DiagnosticReporter is not null)
+        {
+            diagnosticReporter.CommitReporter(match.DiagnosticReporter);
+        }
+
         return Math.Max(matchEnd, segmentStart);
     }
 
     /// <summary>
-    /// Finds the end of a contiguous unrecognized source run.
+    /// Finds the end of a contiguous unrecognized source run without
+    /// consuming a malformed UTF-8 range.
     /// </summary>
     /// <param name="snapshot">
     /// The source snapshot being tokenized.
@@ -141,18 +192,25 @@ public sealed class SourceLexer : ILexer
     /// <param name="position">
     /// The byte position at which the unrecognized run begins.
     /// </param>
+    /// <param name="encodingIssueIndex">
+    /// The index of the next uncommitted encoding issue.
+    /// </param>
     /// <param name="cancellationToken">
     /// The token used to cancel lexical analysis.
     /// </param>
     /// <returns>
     /// The exclusive byte position at which normal lexical recognition
-    /// begins, or the end of the source.
+    /// or encoding recovery begins, or the end of the source.
     /// </returns>
-    private static int FindUnknownEnd(SourceSnapshot snapshot, int position, CancellationToken cancellationToken)
+    private static int FindUnknownEnd(SourceSnapshot snapshot, int position, int encodingIssueIndex, CancellationToken cancellationToken)
     {
+        int encodingBoundary = encodingIssueIndex < snapshot.EncodingIssues.Count
+            ? snapshot.EncodingIssues[encodingIssueIndex].Start
+            : snapshot.SourceLength;
+
         int end = position + 1;
 
-        while (end < snapshot.SourceLength)
+        while (end < snapshot.SourceLength && end < encodingBoundary)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -165,5 +223,47 @@ public sealed class SourceLexer : ILexer
         }
 
         return end;
+    }
+
+    /// <summary>
+    /// Commits a malformed UTF-8 range as an unknown lexical element when the current position lies within that range.
+    /// </summary>
+    /// <param name="snapshot">
+    /// The source snapshot being tokenized.
+    /// </param>
+    /// <param name="position">
+    /// The current canonical byte position.
+    /// </param>
+    /// <param name="encodingIssueIndex">
+    /// The index of the next uncommitted encoding issue.
+    /// </param>
+    /// <param name="tokens">
+    /// The token stream receiving the recovery element.
+    /// </param>
+    /// <param name="end">
+    /// The byte position immediately following the committed encoding issue when an issue is found.
+    /// </param>
+    /// <returns>
+    /// True when a malformed UTF-8 range was committed. False otherwise.
+    /// </returns>
+    private static bool TryCommitEncodingIssue(SourceSnapshot snapshot, int position, ref int encodingIssueIndex, List<LexToken> tokens, out int end)
+    {
+        while (encodingIssueIndex < snapshot.EncodingIssues.Count && snapshot.EncodingIssues[encodingIssueIndex].End <= position)
+        {
+            encodingIssueIndex++;
+        }
+
+        if (encodingIssueIndex >= snapshot.EncodingIssues.Count || snapshot.EncodingIssues[encodingIssueIndex].Start > position)
+        {
+            end = position;
+            return false;
+        }
+
+        SourceEncodingIssue issue = snapshot.EncodingIssues[encodingIssueIndex++];
+
+        tokens.Add(new LexToken(LexTokenType.Unknown, new SourceSpan(snapshot, position, issue.End)));
+
+        end = issue.End;
+        return true;
     }
 }

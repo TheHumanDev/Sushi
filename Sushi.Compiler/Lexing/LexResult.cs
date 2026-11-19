@@ -5,7 +5,7 @@ using Sushi.Core.Source;
 namespace Sushi.Compiler.Lexing;
 
 /// <summary>
-/// Represents a result returned by an <see cref="ILexer"/> when performing lexical analysis on source document text.
+/// Represents a result returned by an <see cref="ILexer"/> when performing lexical analysis on a source snapshot.
 /// </summary>
 /// <param name="Snapshot">
 /// The source snapshot that was lexed.
