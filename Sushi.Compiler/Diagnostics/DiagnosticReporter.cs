@@ -11,7 +11,8 @@ public sealed class DiagnosticReporter : IDiagnosticReporter
 
     private static readonly Dictionary<ErrorType, string> errorMessages = new()
     {
-        [ErrorType.InvalidUtf8] = "Malformed UTF-8 source sequence."
+        [ErrorType.InvalidUtf8] = "Malformed UTF-8 source sequence.",   
+        [ErrorType.UnterminatedBlockComment] = "Unterminated block comment."
     };
 
     private static readonly Dictionary<WarningType, string> warningMessages = [];
