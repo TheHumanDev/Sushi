@@ -28,7 +28,7 @@ public sealed class SushiWorkspace
         {
             using (this.syncRoot.EnterScope())
             {
-                return new ReadOnlyCollection<SourceDocument>(this.documents);
+                return new ReadOnlyCollection<SourceDocument>([.. this.documents]);
             }
         }
     }
