@@ -28,7 +28,9 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
     /// <summary>
     /// The cancellation token used for cooperative cancellation of scheduled analysis.
     /// </summary>
+#pragma warning disable CA2213 // Disposable fields should be disposed
     private CancellationTokenSource? scheduledWorkspaceAnalysis;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
     /// <summary>
     /// The Uris currently participating in scheduled analysis.
@@ -203,19 +205,18 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (this.disposed)
-        {
-            return;
-        }
-
         using (this.scheduleSyncRoot.EnterScope())
         {
-            this.scheduledWorkspaceAnalysis?.Cancel();
-            this.scheduledWorkspaceAnalysis?.Dispose();
-            this.scheduledWorkspaceAnalysis = null;
-            this.scheduledAnalysisUris = null;
+            if (this.disposed)
+            {
+                return;
+            }
             
             this.disposed = true;
+
+            this.scheduledWorkspaceAnalysis?.Cancel();
+            this.scheduledWorkspaceAnalysis = null;
+            this.scheduledAnalysisUris = null;
         }
     }
 }
