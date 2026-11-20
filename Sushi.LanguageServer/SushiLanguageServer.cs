@@ -114,6 +114,7 @@ public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider
                 services.AddSingleton(documentProvider);
             })
             .WithHandler<WorkspaceFoldersHandler>()
+            .WithHandler<WatchedFilesHandler>()
         );
 
         try
