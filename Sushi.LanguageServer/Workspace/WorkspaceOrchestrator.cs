@@ -62,9 +62,18 @@ public sealed class WorkspaceOrchestrator : IDisposable
     /// <summary>
     /// Creates a new instance of <see cref="WorkspaceOrchestrator" />.
     /// </summary>
-    public WorkspaceOrchestrator()
+    /// <param name="documentProvider">
+    /// The provider used to discover registered document types.
+    /// </param>
+    /// <param name="diagnosticReporterFactory">
+    /// The factory used to create new <see cref="IDiagnosticReporter" /> objects.
+    /// </param>
+    public WorkspaceOrchestrator([NotNull] ISourceDocumentProvider documentProvider, [NotNull] IDiagnosticReporterFactory diagnosticReporterFactory)
     {
-        this.coordinator = new WorkspaceAnalysisCoordinator(this);
+        ArgumentNullException.ThrowIfNull(documentProvider);
+        ArgumentNullException.ThrowIfNull(diagnosticReporterFactory);
+
+        this.coordinator = new WorkspaceAnalysisCoordinator(this, documentProvider, diagnosticReporterFactory);
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 using Sushi.LanguageServer.Handlers;
 using Sushi.LanguageServer.Workspace;
@@ -12,7 +13,7 @@ using LSP = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 namespace Sushi.LanguageServer;
 
 /// <inheritdoc cref="ISushiLanguageServer"/>
-public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider) : ISushiLanguageServer
+public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider, IDiagnosticReporterFactory diagnosticReporterFactory) : ISushiLanguageServer
 {
     /// <inheritdoc />
     public async Task Run(LSPTransportMethod transportMethod, IPEndPoint? listenEndpoint, string version)
@@ -96,7 +97,7 @@ public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider
     /// </returns>
     private async Task RunLanguageServer(Stream input, Stream output, string version)
     {
-        WorkspaceOrchestrator workspace = new();
+        WorkspaceOrchestrator workspace = new(documentProvider, diagnosticReporterFactory);
         using LSP server = await LSP.From(options => options
             .WithInput(input)
             .WithOutput(output)
@@ -112,6 +113,7 @@ public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider
                 services.AddSingleton(this);
                 services.AddSingleton(workspace);
                 services.AddSingleton(documentProvider);
+                services.AddSingleton(diagnosticReporterFactory);
             })
             .WithHandler<WorkspaceFoldersHandler>()
             .WithHandler<WatchedFilesHandler>()

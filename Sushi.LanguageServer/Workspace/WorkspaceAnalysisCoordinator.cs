@@ -1,5 +1,8 @@
 ﻿
+using System.Diagnostics.CodeAnalysis;
 using Serilog;
+using Sushi.Core.Analysis;
+using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 
 namespace Sushi.LanguageServer.Workspace;
@@ -19,6 +22,16 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
     /// The workspace orchestrator that owns this coordinator.
     /// </summary>
     private readonly WorkspaceOrchestrator orchestrator;
+
+    /// <summary>
+    /// The provider used to discover registered document types.
+    /// </summary>
+    private readonly ISourceDocumentProvider documentProvider;
+
+    /// <summary>
+    /// The factory used to create new <see cref="IDiagnosticReporter" /> objects.
+    /// </summary>
+    private readonly IDiagnosticReporterFactory diagnosticReporterFactory;
 
     /// <summary>
     /// Synchronizes access of scheduled analysis.
@@ -48,10 +61,20 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
     /// <param name="orchestrator">
     /// The owner of workspace mutations, snapshot capture, and result commitment.
     /// </param>
-    internal WorkspaceAnalysisCoordinator(WorkspaceOrchestrator orchestrator)
+    /// <param name="documentProvider">
+    /// The provider used to discover registered document types.
+    /// </param>
+    /// <param name="diagnosticReporterFactory">
+    /// The factory used to create new <see cref="IDiagnosticReporter" /> objects.
+    /// </param>
+    internal WorkspaceAnalysisCoordinator([NotNull] WorkspaceOrchestrator orchestrator, [NotNull] ISourceDocumentProvider documentProvider, [NotNull] IDiagnosticReporterFactory diagnosticReporterFactory)
     {
         ArgumentNullException.ThrowIfNull(orchestrator);
+        ArgumentNullException.ThrowIfNull(documentProvider);
+        ArgumentNullException.ThrowIfNull(diagnosticReporterFactory);
         this.orchestrator = orchestrator;
+        this.documentProvider = documentProvider;
+        this.diagnosticReporterFactory = diagnosticReporterFactory;
     }
 
     /// <summary>
@@ -74,10 +97,29 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
 
         IReadOnlyList<SourceSnapshot> snapshots = [.. input.Documents.Select(item => item.Snapshot)];
 
-        bool analyzeEntireWorkspace = affectedUris is null || affectedUris.Any(uri =>
-            !Path.GetExtension(uri.LocalPath).Equals(".sus", StringComparison.OrdinalIgnoreCase) || !File.Exists(uri.LocalPath));
+        bool analyzeEntireWorkspace = affectedUris is null
+            || affectedUris
+                .Any(uri => this.DoesDocumentInvalidateEntireCache(uri) || !File.Exists(uri.LocalPath));
 
         IReadOnlyList<Uri>? effectiveAffectedUris = analyzeEntireWorkspace ? null : affectedUris;
+
+        foreach (DocumentSnapshot item in input.Documents)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string extension = Path.GetExtension(item.Snapshot.Uri.LocalPath).Replace(".", string.Empty, StringComparison.InvariantCultureIgnoreCase);
+
+            ISourceDocumentType? documentType = this.documentProvider.DocumentTypes.FirstOrDefault(doc => doc.Extension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+
+            if (documentType is null)
+            {
+                continue;
+            }
+
+            IDiagnosticReporter reporter = this.diagnosticReporterFactory.GetNewDiagnosticReporter();
+            AnalysisResult analysis = await documentType.Analyze(item.Snapshot, reporter, cancellationToken);
+
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
         await this.orchestrator.TryCommitAnalysis(input, cancellationToken);
@@ -197,6 +239,27 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
                 cancellation.Cancel();
             }
         }
+    }
+
+    private bool IsWorkspaceDocument(string filePath)
+    {
+        string extension = Path.GetExtension(filePath).Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        return this.documentProvider.RegisteredExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private bool DoesDocumentInvalidateEntireCache(Uri uri)
+    {
+        string extension = Path.GetExtension(uri.LocalPath).Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        ISourceDocumentType? documentType = this.documentProvider.DocumentTypes.FirstOrDefault(doc => doc.Extension.Equals(extension, StringComparison.OrdinalIgnoreCase));
+
+        if (documentType is null)
+        {
+            return false;
+        }
+
+        return documentType.ChangesInvalidateEntireCache;
     }
 
     /// <summary>

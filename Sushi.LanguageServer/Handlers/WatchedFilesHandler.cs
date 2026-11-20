@@ -54,8 +54,7 @@ public sealed class WatchedFilesHandler([NotNull] WorkspaceOrchestrator workspac
     protected override DidChangeWatchedFilesRegistrationOptions CreateRegistrationOptions(DidChangeWatchedFilesCapability capability, ClientCapabilities clientCapabilities)
     {
         string extensions = documentProvider
-            .DocumentTypes
-            .Select(x => x.Extension)
+            .RegisteredExtensions
             .Aggregate((previous, next) => $"{previous},{next}");
 
         string glob = $"**/*.{{{extensions}}}";

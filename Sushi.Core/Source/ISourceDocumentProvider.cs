@@ -1,4 +1,6 @@
-﻿namespace Sushi.Core.Source;
+﻿using System.Collections.ObjectModel;
+
+namespace Sushi.Core.Source;
 
 /// <summary>
 /// Represents a handler that provides source document information such as registered
@@ -10,4 +12,9 @@ public interface ISourceDocumentProvider
     /// The available document types registered with the provider.
     /// </summary>
     public IReadOnlyList<ISourceDocumentType> DocumentTypes { get; }
+
+    /// <summary>
+    /// The extensions registered in this document provider.
+    /// </summary>
+    public IReadOnlyList<string> RegisteredExtensions => new ReadOnlyCollection<string>([.. this.DocumentTypes.Select(x => x.Extension)]);
 }
