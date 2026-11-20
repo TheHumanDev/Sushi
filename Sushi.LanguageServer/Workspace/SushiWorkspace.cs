@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Sushi.Core.Source;
 
-namespace Sushi.LanguageServer;
+namespace Sushi.LanguageServer.Workspace;
 
 /// <summary>
 /// Represents an open workspace.

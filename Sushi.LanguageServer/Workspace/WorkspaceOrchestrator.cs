@@ -8,7 +8,7 @@ using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 
-namespace Sushi.LanguageServer;
+namespace Sushi.LanguageServer.Workspace;
 
 /// <summary>
 /// Handles the orchestration and plumbing of source document tracking.

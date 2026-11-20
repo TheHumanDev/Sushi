@@ -4,6 +4,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Workspace;
 using Sushi.Core.Source;
+using Sushi.LanguageServer.Workspace;
 using FileSystemWatcher = OmniSharp.Extensions.LanguageServer.Protocol.Models.FileSystemWatcher;
 
 namespace Sushi.LanguageServer.Handlers;

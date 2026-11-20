@@ -6,6 +6,7 @@ using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
 using Sushi.Core.Source;
 using Sushi.LanguageServer.Handlers;
+using Sushi.LanguageServer.Workspace;
 using LSP = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
 namespace Sushi.LanguageServer;

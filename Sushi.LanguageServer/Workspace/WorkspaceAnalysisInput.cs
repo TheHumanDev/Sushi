@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Sushi.LanguageServer;
+namespace Sushi.LanguageServer.Workspace;
 
 /// <summary>
 /// Represents a versioned input for workspace analysis.
