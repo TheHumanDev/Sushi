@@ -4,13 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Sushi.Core.Source;
 using Sushi.LanguageServer.Handlers;
 using LSP = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
 namespace Sushi.LanguageServer;
 
 /// <inheritdoc cref="ISushiLanguageServer"/>
-public sealed class SushiLanguageServer : ISushiLanguageServer
+public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider) : ISushiLanguageServer
 {
     /// <inheritdoc />
     public async Task Run(LSPTransportMethod transportMethod, IPEndPoint? listenEndpoint, string version)
@@ -109,6 +110,7 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
             {
                 services.AddSingleton(this);
                 services.AddSingleton(workspace);
+                services.AddSingleton(documentProvider);
             })
             .WithHandler<WorkspaceFoldersHandler>()
         );

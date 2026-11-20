@@ -61,6 +61,11 @@ public sealed class WorkspaceOrchestrator : IDisposable
     private long analyzedWorkspaceGeneration = -1;
 
     /// <summary>
+    /// The duration in milliseconds to wait before attempting file system analysis.
+    /// </summary>
+    private static readonly TimeSpan fileSystemAnalysisDebounce = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
     /// The language server facade used to publish messages.
     /// </summary>
     private ILanguageServerFacade? languageServer;
@@ -471,6 +476,160 @@ public sealed class WorkspaceOrchestrator : IDisposable
                 cancellation.Cancel();
             }
         }
+    }
+
+    /// <summary>
+    /// Applies change notifications to files to update them.
+    /// </summary>
+    /// <param name="changes">
+    /// The changes to apply.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to cancel file change updates.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task" />.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown if the file change type is unsupported.
+    /// </exception>
+    public async Task ApplyFileChanges([NotNull] IEnumerable<FileEvent> changes, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(changes);
+
+        FileEvent[] fileEvents = [.. changes];
+        bool changed = false;
+        List<Uri> affectedUris = [];
+
+        await this.mutationGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            foreach (FileEvent fileEvent in fileEvents)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                Uri documentUri = fileEvent.Uri.ToUri();
+
+                if (!documentUri.IsFile || !IsWorkspaceDocument(documentUri.LocalPath))
+                {
+                    continue;
+                }
+
+                switch (fileEvent.Type)
+                {
+                    case FileChangeType.Created:
+                    case FileChangeType.Changed:
+                        if (await this.RefreshDiskDocument(documentUri, cancellationToken))
+                        {
+                            changed = true;
+                            affectedUris.Add(documentUri);
+                        }
+
+                        break;
+                    case FileChangeType.Deleted:
+                        if (this.HandleDeletedDiskDocument(documentUri))
+                        {
+                            changed = true;
+                            affectedUris.Add(documentUri);
+                        }
+
+                        break;
+                    default:
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
+                        throw new ArgumentOutOfRangeException(nameof(fileEvent), fileEvent.Type, "Unsupported file change type.");
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
+                }
+            }
+
+            if (changed)
+            {
+                this.AdvanceWorkspaceGeneration();
+            }
+        }
+        finally
+        {
+            this.mutationGate.Release();
+        }
+
+        if (changed)
+        {
+            this.ScheduleWorkspaceAnalysis(fileSystemAnalysisDebounce, affectedUris);
+        }
+    }
+
+    /// <summary>
+    /// Refreshes a disk document.
+    /// </summary>
+    /// <param name="documentUri">
+    /// The <see cref="Uri"/> of the document.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to cancel document refresh.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task"/> that returns a bool. True if the document was closed. False
+    /// if the document was still open.
+    /// </returns>
+    private async Task<bool> RefreshDiskDocument(Uri documentUri, CancellationToken cancellationToken)
+    {
+        if (!File.Exists(documentUri.LocalPath))
+        {
+            return this.HandleDeletedDiskDocument(documentUri);
+        }
+
+        SourceSnapshot diskSnapshot;
+
+        try
+        {
+            diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
+        }
+        catch (Exception _) when (_ is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return this.HandleDeletedDiskDocument(documentUri);
+        }
+
+        SourceDocument document = this.workspace.GetOrAddDocument(documentUri, diskSnapshot);
+        document.UpdateDisk(diskSnapshot);
+
+        if (document.IsOpen)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Handles a deleted disk document.
+    /// </summary>
+    /// <param name="documentUri">
+    /// The document <see cref="Uri"/>.
+    /// </param>
+    /// <returns>
+    /// True if the document was closed. False if it was still open.
+    /// </returns>
+    private bool HandleDeletedDiskDocument(Uri documentUri)
+    {
+        if (!this.workspace.TryGetDocument(documentUri, out SourceDocument? document))
+        {
+            this.ClearDiagnostics(documentUri);
+
+            return false;
+        }
+
+        if (document.IsOpen)
+        {
+            // The in-memory editor snapshot remains authoritative.
+            // The stale disk snapshot will never become current while
+            // the editor snapshot exists.
+            return false;
+        }
+
+        this.CancelScheduledAnalysis();
+        this.workspace.RemoveDocument(documentUri);
+        this.ClearDiagnostics(documentUri);
+        return true;
     }
 
     /// <summary>
