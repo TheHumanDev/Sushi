@@ -55,6 +55,11 @@ public sealed class WorkspaceOrchestrator : IDisposable
     private ILanguageServerFacade? languageServer;
 
     /// <summary>
+    /// The provider used to discover registered document types.
+    /// </summary>
+    private readonly ISourceDocumentProvider documentProvider;
+
+    /// <summary>
     /// Whether the orchestrator has been disposed.
     /// </summary>
     private bool disposed;
@@ -74,6 +79,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
         ArgumentNullException.ThrowIfNull(diagnosticReporterFactory);
 
         this.coordinator = new WorkspaceAnalysisCoordinator(this, documentProvider, diagnosticReporterFactory);
+        this.documentProvider = documentProvider;
     }
 
     /// <summary>
@@ -238,7 +244,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!IsWorkspaceDocument(filePath))
+                if (!this.IsWorkspaceDocument(filePath))
                 {
                     continue;
                 }
@@ -430,7 +436,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
 
                 Uri documentUri = fileEvent.Uri.ToUri();
 
-                if (!documentUri.IsFile || !IsWorkspaceDocument(documentUri.LocalPath))
+                if (!documentUri.IsFile || !this.IsWorkspaceDocument(documentUri.LocalPath))
                 {
                     continue;
                 }
@@ -637,13 +643,13 @@ public sealed class WorkspaceOrchestrator : IDisposable
     /// <returns>
     /// True if the file is a sushi workspace document. False otherwise.
     /// </returns>
-    private static bool IsWorkspaceDocument([NotNull] string filePath)
+    private bool IsWorkspaceDocument([NotNull] string filePath)
     {
         ArgumentNullException.ThrowIfNull(filePath);
 
         string extension = Path.GetExtension(filePath);
 
-        return extension.Equals(".sus", StringComparison.OrdinalIgnoreCase);
+        return this.documentProvider.RegisteredExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <inheritdoc />
