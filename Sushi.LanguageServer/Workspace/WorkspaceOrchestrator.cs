@@ -3,7 +3,6 @@ using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using Serilog;
 using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
@@ -16,7 +15,7 @@ namespace Sushi.LanguageServer.Workspace;
 public sealed class WorkspaceOrchestrator : IDisposable
 {
     /// <summary>
-    /// Represents the current open workspace.
+    /// Represents the currently tracked workspace.
     /// </summary>
     private readonly SushiWorkspace workspace = new();
 
@@ -26,24 +25,14 @@ public sealed class WorkspaceOrchestrator : IDisposable
     private readonly Lock foldersSyncRoot = new();
 
     /// <summary>
-    /// Synchronizes access of scheduled analysis.
-    /// </summary>
-    private readonly Lock analysisScheduleSyncRoot = new();
-
-    /// <summary>
-    /// Synchronizes mutation of the workspace.
+    /// Serializes authoritative workspace mutations and analysis commits.
     /// </summary>
     private readonly SemaphoreSlim mutationGate = new(1, 1);
 
     /// <summary>
-    /// The cancellation token used for cooperative cancellation of scheduled analysis.
+    /// The coordinator that handles analysis.
     /// </summary>
-    private CancellationTokenSource? scheduledWorkspaceAnalysis;
-
-    /// <summary>
-    /// The Uris currently participating in scheduled analysis.
-    /// </summary>
-    private HashSet<Uri>? scheduledAnalysisUris;
+    private readonly WorkspaceAnalysisCoordinator coordinator;
 
     /// <summary>
     /// The workspace folders from the client. Contains the sushi project files when running in LSP mode.
@@ -51,22 +40,17 @@ public sealed class WorkspaceOrchestrator : IDisposable
     private readonly List<WorkspaceFolder> folders = [];
 
     /// <summary>
-    /// The workspace generation number. Used for analysis versioning.
+    /// The current workspace generation.
     /// </summary>
     private long workspaceGeneration;
 
     /// <summary>
-    /// The analyzed workspace generation number. Used for analysis versioning.
+    /// The most recently committed analysis generation.
     /// </summary>
     private long analyzedWorkspaceGeneration = -1;
 
     /// <summary>
-    /// The duration in milliseconds to wait before attempting file system analysis.
-    /// </summary>
-    private static readonly TimeSpan fileSystemAnalysisDebounce = TimeSpan.FromMilliseconds(500);
-
-    /// <summary>
-    /// The language server facade used to publish messages.
+    /// The language server facade used to publish diagnostics.
     /// </summary>
     private ILanguageServerFacade? languageServer;
 
@@ -76,13 +60,21 @@ public sealed class WorkspaceOrchestrator : IDisposable
     private bool disposed;
 
     /// <summary>
+    /// Creates a new instance of <see cref="WorkspaceOrchestrator" />.
+    /// </summary>
+    public WorkspaceOrchestrator()
+    {
+        this.coordinator = new WorkspaceAnalysisCoordinator(this);
+    }
+
+    /// <summary>
     /// Initializes the language service with the information about the currently open workspace.
     /// </summary>
     /// <param name="workspaceFolders">
     /// The folders that are a part of the workspace.
     /// </param>
     /// <param name="cancellationToken">
-    /// The cancellation token.
+    /// The cancellation token used to cancel initialization.
     /// </param>
     /// <returns>
     /// An awaitable <see cref="Task"/>.
@@ -105,11 +97,12 @@ public sealed class WorkspaceOrchestrator : IDisposable
             this.mutationGate.Release();
         }
 
-        await this.AnalyzeWorkspace(cancellationToken);
+        await this.coordinator.AnalyzeWorkspace(cancellationToken);
     }
 
     /// <summary>
-    /// Starts the workspace orchestrator.
+    /// Connects the initialized workspace to the LSP server and publishes
+    /// any existing current diagnostics.
     /// </summary>
     /// <param name="languageServer">
     /// The language server facade used to interface with the protocol.
@@ -125,7 +118,6 @@ public sealed class WorkspaceOrchestrator : IDisposable
         ArgumentNullException.ThrowIfNull(languageServer);
 
         this.languageServer = languageServer;
-
         this.PublishDiagnosticsForAllDocuments(cancellationToken);
 
         return Task.CompletedTask;
@@ -160,14 +152,12 @@ public sealed class WorkspaceOrchestrator : IDisposable
                 foreach (WorkspaceFolder removedFolder in removedFolders)
                 {
                     Uri removedUri = removedFolder.Uri.ToUri();
-
                     this.folders.RemoveAll(folder => folder.Uri.ToUri().IsSamePath(removedUri));
                 }
 
                 foreach (WorkspaceFolder addedFolder in addedFolders)
                 {
                     Uri addedUri = addedFolder.Uri.ToUri();
-
                     bool alreadyExists = this.folders.Any(folder => folder.Uri.ToUri().IsSamePath(addedUri));
 
                     if (!alreadyExists)
@@ -185,7 +175,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
             this.mutationGate.Release();
         }
 
-        await this.AnalyzeWorkspace(cancellationToken);
+        await this.coordinator.AnalyzeWorkspace(cancellationToken);
     }
 
     /// <summary>
@@ -238,21 +228,19 @@ public sealed class WorkspaceOrchestrator : IDisposable
             foreach (string filePath in Directory.EnumerateFiles(folderPath, "*", enumerationOptions))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
                 if (!IsWorkspaceDocument(filePath))
                 {
                     continue;
                 }
 
                 Uri documentUri = new(Path.GetFullPath(filePath));
-
                 discoveredDocuments.Add(documentUri);
 
                 SourceSnapshot diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
-
                 SourceDocument document = this.workspace.GetOrAddDocument(documentUri, diskSnapshot);
-                
-                document.UpdateDisk(diskSnapshot);
 
+                document.UpdateDisk(diskSnapshot);
             }
         }
 
@@ -264,60 +252,32 @@ public sealed class WorkspaceOrchestrator : IDisposable
 
             if (!stillExists && !document.IsOpen)
             {
-                this.CancelScheduledAnalysis();
-
+                this.coordinator.CancelScheduledAnalysis();
                 this.workspace.RemoveDocument(document.Uri);
-
                 this.ClearDiagnostics(document.Uri);
             }
         }
     }
 
     /// <summary>
-    /// Analyzes the workspace.
+    /// Captures workspace membership, source snapshots, and the current
+    /// generation under the authoritative workspace mutation gate.
     /// </summary>
     /// <param name="cancellationToken">
-    /// The token used to cancel analysis.
-    /// </param>
-    /// <param name="affectedUris">
-    /// The Uris that are affected by this analysis.
+    /// The token used to cancel snapshot capture.
     /// </param>
     /// <returns>
-    /// An awaitable <see cref="Task"/>.
+    /// An awaitable <see cref="Task"/> that returns a consistent, versioned input for workspace analysis.
     /// </returns>
-    private async Task AnalyzeWorkspace(CancellationToken cancellationToken, IReadOnlyList<Uri>? affectedUris = null)
+    internal async Task<WorkspaceAnalysisInput> CaptureAnalysisInput(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        WorkspaceAnalysisInput input;
-
         await this.mutationGate.WaitAsync(cancellationToken);
+
         try
         {
-            input = new WorkspaceAnalysisInput(this.workspaceGeneration,
+            return new WorkspaceAnalysisInput(this.workspaceGeneration,
                 [.. this.workspace.Documents.Select(document => new DocumentSnapshot(document, document.CurrentSnapshot))]);
-        }
-        finally
-        {
-            this.mutationGate.Release();
-        }
-
-        IReadOnlyList<SourceSnapshot> snapshots = [.. input.Documents.Select(item => item.Snapshot)];
-        bool analyzeEntireWorkspace = affectedUris is null || affectedUris.Any(uri =>
-            !Path.GetExtension(uri.LocalPath).Equals(".sus", StringComparison.OrdinalIgnoreCase) || !File.Exists(uri.LocalPath));
-        IReadOnlyList<Uri>? effectiveAffectedUris = analyzeEntireWorkspace ? null : affectedUris;
-
-        cancellationToken.ThrowIfCancellationRequested();
-        await this.mutationGate.WaitAsync(cancellationToken);
-        try
-        {
-            if (this.workspaceGeneration != input.Generation
-                || input.Documents.Any(item => !item.Document.IsCurrent(item.Snapshot)))
-            {
-                return;
-            }
-
-            this.analyzedWorkspaceGeneration = input.Generation;
         }
         finally
         {
@@ -326,7 +286,48 @@ public sealed class WorkspaceOrchestrator : IDisposable
     }
 
     /// <summary>
-    /// Advances the workspace generation numbers.
+    /// Conditionally commits an analysis generation if the workspace and
+    /// every captured source snapshot are still current.
+    /// </summary>
+    /// <param name="input">
+    /// The input used by the analysis attempt.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancels commitment.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task" /> that returns true if the
+    /// generation was accepted; otherwise false.
+    /// </returns>
+    internal async Task<bool> TryCommitAnalysis(WorkspaceAnalysisInput input, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        await this.mutationGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (this.workspaceGeneration != input.Generation
+                || input.Documents.Any(item => !item.Document.IsCurrent(item.Snapshot)))
+            {
+                return false;
+            }
+
+            this.analyzedWorkspaceGeneration = input.Generation;
+
+            return true;
+        }
+        finally
+        {
+            this.mutationGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Advances the workspace generation after an authoritative state change.
     /// </summary>
     private void AdvanceWorkspaceGeneration() => this.workspaceGeneration++;
 
@@ -380,106 +381,10 @@ public sealed class WorkspaceOrchestrator : IDisposable
             this.folders.AddRange(workspaceFolders);
         }
     }
-
+    
     /// <summary>
-    /// Schedules workplace analysis to be completed.
-    /// </summary>
-    /// <param name="delay">
-    /// The amount of time to wait before performing analysis.
-    /// </param>
-    /// <param name="affectedUris">
-    /// The Uris that will participate in the scheduled analysis.
-    /// </param>
-    private void ScheduleWorkspaceAnalysis(TimeSpan delay, [NotNull] IEnumerable<Uri> affectedUris)
-    {
-        ArgumentNullException.ThrowIfNull(affectedUris);
-        CancellationTokenSource cancellation = new();
-        Uri[] scope;
-
-        using (this.analysisScheduleSyncRoot.EnterScope())
-        {
-            this.scheduledWorkspaceAnalysis?.Cancel();
-            this.scheduledAnalysisUris ??= [];
-            foreach (Uri uri in affectedUris)
-            {
-                this.scheduledAnalysisUris.Add(uri);
-            }
-
-            scope = [.. this.scheduledAnalysisUris];
-            this.scheduledWorkspaceAnalysis = cancellation;
-        }
-
-#pragma warning disable CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-        _ = this.RunScheduledWorkspaceAnalysis(delay, cancellation, scope);
-#pragma warning restore CA2025 // Do not pass 'IDisposable' instances into unawaited tasks
-    }
-
-    /// <summary>
-    /// Runs a previously scheduled workplace analysis.
-    /// </summary>
-    /// <param name="delay">
-    /// The amount of time to wait before performing analysis.
-    /// </param>
-    /// <param name="cancellation">
-    /// The token used to cancel the analysis.
-    /// </param>
-    /// <param name="affectedUris">
-    /// The Uris that will participate in the scheduled analysis.
-    /// </param>
-    /// <returns>
-    /// An awaitable <see cref="Task"/>.
-    /// </returns>
-    private async Task RunScheduledWorkspaceAnalysis(TimeSpan delay, CancellationTokenSource cancellation, IReadOnlyList<Uri> affectedUris)
-    {
-        try
-        {
-            await Task.Delay(delay, cancellation.Token);
-            await this.AnalyzeWorkspace(cancellation.Token, affectedUris);
-        }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-        {
-            // Expected when a newer workspace snapshot supersedes this analysis.
-        }
-        
-#pragma warning disable CA1031 // Do not catch general exception types
-        catch (Exception exception)
-        {
-            Log.Error(exception, "Unhandled exception while performing scheduled project diagnostics.");
-        }
-#pragma warning restore CA1031 // Do not catch general exception types
-        finally
-        {
-            using (this.analysisScheduleSyncRoot.EnterScope())
-            {
-                if (ReferenceEquals(this.scheduledWorkspaceAnalysis, cancellation))
-                {
-                    this.scheduledWorkspaceAnalysis = null;
-                    this.scheduledAnalysisUris = null;
-                }
-            }
-
-            cancellation.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// Cancels the currently scheduled analysis if there is one.
-    /// </summary>
-    private void CancelScheduledAnalysis()
-    {
-        using (this.analysisScheduleSyncRoot.EnterScope())
-        {
-            if (this.scheduledWorkspaceAnalysis is CancellationTokenSource cancellation)
-            {
-                this.scheduledWorkspaceAnalysis = null;
-                this.scheduledAnalysisUris = null;
-                cancellation.Cancel();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Applies change notifications to files to update them.
+    /// Applies watched-file notifications and schedules analysis when
+    /// an authoritative workspace change is detected.
     /// </summary>
     /// <param name="changes">
     /// The changes to apply.
@@ -527,6 +432,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
                         }
 
                         break;
+
                     case FileChangeType.Deleted:
                         if (this.HandleDeletedDiskDocument(documentUri))
                         {
@@ -535,6 +441,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
                         }
 
                         break;
+
                     default:
 #pragma warning disable CA2208 // Instantiate argument exceptions correctly
                         throw new ArgumentOutOfRangeException(nameof(fileEvent), fileEvent.Type, "Unsupported file change type.");
@@ -554,22 +461,21 @@ public sealed class WorkspaceOrchestrator : IDisposable
 
         if (changed)
         {
-            this.ScheduleWorkspaceAnalysis(fileSystemAnalysisDebounce, affectedUris);
+            this.coordinator.ScheduleFileSystemAnalysis(affectedUris);
         }
     }
 
     /// <summary>
-    /// Refreshes a disk document.
+    /// Refreshes an existing disk document or adds a newly discovered document.
     /// </summary>
     /// <param name="documentUri">
-    /// The <see cref="Uri"/> of the document.
+    /// The <see cref="Uri"/> of the document to refresh.
     /// </param>
     /// <param name="cancellationToken">
     /// The token used to cancel document refresh.
     /// </param>
     /// <returns>
-    /// An awaitable <see cref="Task"/> that returns a bool. True if the document was closed. False
-    /// if the document was still open.
+    /// An awaitable <see cref="Task"/> that returns a bool. True if the change affects the current document, or it was closed. False if the document was still open.
     /// </returns>
     private async Task<bool> RefreshDiskDocument(Uri documentUri, CancellationToken cancellationToken)
     {
@@ -601,10 +507,11 @@ public sealed class WorkspaceOrchestrator : IDisposable
     }
 
     /// <summary>
-    /// Handles a deleted disk document.
+    /// Removes a deleted disk-backed document while preserving an open
+    /// editor snapshot, if one exists.
     /// </summary>
     /// <param name="documentUri">
-    /// The document <see cref="Uri"/>.
+    /// The deleted document <see cref="Uri"/>.
     /// </param>
     /// <returns>
     /// True if the document was closed. False if it was still open.
@@ -626,7 +533,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
             return false;
         }
 
-        this.CancelScheduledAnalysis();
+        this.coordinator.CancelScheduledAnalysis();
         this.workspace.RemoveDocument(documentUri);
         this.ClearDiagnostics(documentUri);
         return true;
@@ -656,7 +563,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
     }
 
     /// <summary>
-    /// Publishes diagnostics for all documents in the workspace.
+    /// Publishes diagnostics for all tracked documents in the workspace.
     /// </summary>
     /// <param name="cancellationToken">
     /// The token used to cancel publishing.
@@ -733,14 +640,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
             return;
         }
 
-        using (this.analysisScheduleSyncRoot.EnterScope())
-        {
-            this.scheduledWorkspaceAnalysis?.Cancel();
-            this.scheduledWorkspaceAnalysis?.Dispose();
-            this.scheduledWorkspaceAnalysis = null;
-            this.scheduledAnalysisUris = null;
-        }
-
+        this.coordinator.Dispose();
         this.mutationGate.Dispose();
 
         this.disposed = true;
