@@ -325,6 +325,11 @@ public sealed class WorkspaceOrchestrator : IDisposable
                 return false;
             }
 
+            foreach ((AnalysisResult analysis, IDiagnosticReporter diagnosticReporter) in input.AnalysisCandidates)
+            {
+                this.PublishDiagnostics(analysis, diagnosticReporter.ReportDiagnostics());
+            }
+
             this.analyzedWorkspaceGeneration = input.Generation;
 
             return true;

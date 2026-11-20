@@ -119,6 +119,7 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
             IDiagnosticReporter reporter = this.diagnosticReporterFactory.GetNewDiagnosticReporter();
             AnalysisResult analysis = await documentType.Analyze(item.Snapshot, reporter, cancellationToken);
 
+            input.AddAnalysisCandidate(analysis, reporter);
         }
 
         cancellationToken.ThrowIfCancellationRequested();
