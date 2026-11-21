@@ -119,7 +119,7 @@ public sealed class SourceSnapshotTests
     {
         SourceSnapshot snapshot = SourceSnapshot.FromText(testUri, null, text);
 
-        (int line, int character) = snapshot.GetUtf16Position(byteOffset);
+        (int line, int character) = snapshot.GetUTF16Position(byteOffset);
 
         line
             .Should()
@@ -141,7 +141,7 @@ public sealed class SourceSnapshotTests
         SourceSnapshot snapshot = SourceSnapshot.FromText(testUri, null, text);
 
         int byteOffset = snapshot.GetByteOffset(line, character);
-        (int actualLine, int actualCharacter) = snapshot.GetUtf16Position(byteOffset);
+        (int actualLine, int actualCharacter) = snapshot.GetUTF16Position(byteOffset);
 
         byteOffset
             .Should()

@@ -305,7 +305,7 @@ public sealed class SourceSnapshot
     /// <returns>
     /// The zero-based line and UTF-16 character position.
     /// </returns>
-    public (int Line, int Character) GetUtf16Position(int byteOffset)
+    public (int Line, int Character) GetUTF16Position(int byteOffset)
     {
         if (byteOffset < 0 || byteOffset > this.bytes.Length)
         {
