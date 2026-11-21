@@ -41,6 +41,36 @@
                     "light": "./Sushi.png",
                     "dark": "./Sushi.png"
                 }
+            },
+            {
+                "id": "susproj",
+                "aliases": [
+                    "Sushi Project",
+                    "sushiproject"
+                ],
+                "extensions": [
+                    ".susproj"
+                ],
+                "configuration": "./susproj-language-configuration.json",
+                "icon": {
+                    "light": "./Susproj.png",
+                    "dark": "./Susproj.png"
+                }
+            },
+            {
+                "id": "susln",
+                "aliases": [
+                    "Sushi Solution",
+                    "sushisolution"
+                ],
+                "extensions": [
+                    ".susln"
+                ],
+                "configuration": "./susln-language-configuration.json",
+                "icon": {
+                    "light": "./Susln.png",
+                    "dark": "./Susln.png"
+                }
             }
         ],
         "grammars": [
@@ -51,11 +81,42 @@
                 "embeddedLanguages": {
                     "meta.embedded.block.sus": "sushi"
                 }
+            },
+            {
+                "language": "susproj",
+                "scopeName": "source.susproj",
+                "path": "./syntaxes/susproj.tmLanguage.json"
+            },
+            {
+                "language": "susln",
+                "scopeName": "source.susln",
+                "path": "./syntaxes/susln.tmLanguage.json"
+            },
+            {
+                "scopeName": "source.sushi.toml",
+                "path": "./syntaxes/toml.tmLanguage.json"
             }
-        ]
+        ],
+        "configurationDefaults": {
+            "[sushi]": {
+                "editor.semanticHighlighting.enabled": true,
+                "editor.tabSize": 4,
+                "editor.wordBasedSuggestions": "off"
+            },
+            "[susproj]": {
+                "editor.semanticHighlighting.enabled": true,
+                "editor.tabSize": 4
+            },
+            "[susln]": {
+                "editor.semanticHighlighting.enabled": true,
+                "editor.tabSize": 4
+            }
+        }
     },
     "activationEvents": [
-        "workspaceContains:**/*.sus"
+        "workspaceContains:**/*.sus",
+        "workspaceContains:**/*.susproj",
+        "workspaceContains:**/*.susln"
     ],
     "scripts": {
         "check:manifest": "node -e \"const fs = require('node:fs'); const text = fs.readFileSync('package.json', 'utf8'); if (text.charCodeAt(0) === 0xFEFF) throw new Error('package.json must be UTF-8 without BOM'); JSON.parse(text);\"",
@@ -64,7 +125,7 @@
         "compile": "npm run check-types && npm run bundle",
         "precompile": "npm run check:manifest",
         "watch": "npm run bundle -- --watch",
-        "generate:syntax": "js-yaml syntaxes/sushi.tmLanguage.yml > syntaxes/sushi.tmLanguage.json",
+        "generate:syntax": "js-yaml syntaxes/sushi.tmLanguage.yml > syntaxes/sushi.tmLanguage.json && js-yaml syntaxes/susln.tmLanguage.yml > syntaxes/susln.tmLanguage.json && js-yaml syntaxes/susproj.tmLanguage.yml > syntaxes/susproj.tmLanguage.json && js-yaml syntaxes/toml.tmLanguage.yml > syntaxes/toml.tmLanguage.json",
         "lint": "eslint .",
         "vscode:prepublish": "npm run compile && npm run generate:syntax",
         "package:vsix": "node scripts/package-vsix.mjs"
