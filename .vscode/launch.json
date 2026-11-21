@@ -8,7 +8,7 @@
             "preLaunchTask": "build: compiler",
             "program": "${workspaceFolder}/Sushi/bin/Debug/net11.0/win-x64/Sushi.dll",
             "args": [
-                "-lsp",
+                "lsp",
                 "--tcp",
                 "127.0.0.1:5057"
             ],
@@ -23,7 +23,7 @@
             "preLaunchTask": "build: compiler",
             "program": "${workspaceFolder}/Sushi/bin/Debug/net11.0/win-x64/Sushi.dll",
             "args": [
-                "-lsp",
+                "lsp",
                 "--tcp",
                 "127.0.0.1:5057"
             ],

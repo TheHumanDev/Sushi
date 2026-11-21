@@ -36,11 +36,6 @@ internal static partial class AppMeta
     }
 
     /// <summary>
-    /// Options for how the compiler should behave, translated from the command line arguments.
-    /// </summary>
-    internal static CompilerOptions Options { get; set; } = null!;
-
-    /// <summary>
     /// Whether the program is running in debug mode or not.
     /// </summary>
     internal static bool IsDebug =>

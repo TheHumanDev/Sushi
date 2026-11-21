@@ -5,5 +5,6 @@
 /// </summary>
 internal enum CompilerOptionsError
 {
-    InvalidParameterSyntax
+    InvalidParameterSyntax,
+    InvalidProjectFileOrFolder
 }
