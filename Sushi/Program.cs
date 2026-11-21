@@ -7,10 +7,6 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 using Sushi.Compiler;
-using Sushi.Compiler.Diagnostics;
-using Sushi.Compiler.Source;
-using Sushi.Core.Diagnostics;
-using Sushi.Core.Source;
 using Sushi.Diagnostics;
 using Sushi.Diagnostics.Exceptions;
 using Sushi.LanguageServer;
@@ -136,8 +132,6 @@ internal static class Program
     {
         services.AddSingleton<ISushiCompiler, SushiCompiler>();
         services.AddSingleton<ISushiLanguageServer, SushiLanguageServer>();
-        services.AddSingleton<ISourceDocumentProvider, SushiSourceDocumentProvider>();
-        services.AddSingleton<IDiagnosticReporterFactory, DiagnosticReporterFactory>();
     }
     
     /// <summary>
