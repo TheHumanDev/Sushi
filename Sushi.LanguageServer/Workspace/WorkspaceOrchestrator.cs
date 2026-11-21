@@ -333,6 +333,15 @@ public sealed class WorkspaceOrchestrator : IDisposable
 
             foreach ((AnalysisResult analysis, IDiagnosticReporter diagnosticReporter) in input.AnalysisCandidates)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                DocumentSnapshot? item = input.Documents.FirstOrDefault(candidate => ReferenceEquals(candidate.Snapshot, analysis.Snapshot));
+
+                if (item is null || !item.Document.TryUpdateAnalysis(analysis, diagnosticReporter))
+                {
+                    continue;  
+                }
+
                 this.PublishDiagnostics(analysis, diagnosticReporter.ReportDiagnostics());
             }
 
@@ -647,7 +656,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
     {
         ArgumentNullException.ThrowIfNull(filePath);
 
-        string extension = Path.GetExtension(filePath);
+        string extension = Path.GetExtension(filePath).Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
 
         return this.documentProvider.RegisteredExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
     }
