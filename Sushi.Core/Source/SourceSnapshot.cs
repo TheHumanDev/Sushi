@@ -57,7 +57,7 @@ public sealed class SourceSnapshot
     /// Whether the canonical source is valid UTF-8.
     /// </summary>
     public bool IsValidUtf8 => this.encodingIssues.Count == 0;
- 
+
     private SourceSnapshot([NotNull] Uri uri, int? version, [NotNull] byte[] bytes)
     {
         ArgumentNullException.ThrowIfNull(uri);
@@ -295,13 +295,15 @@ public sealed class SourceSnapshot
     }
 
     /// <summary>
-    /// Gets the UTF-16 position from a byte offset.
+    /// Converts a canonical UTF-8 byte offset to a UTF-16 editor position.
+    /// Byte offsets within line terminators map to the preceding line's
+    /// end-of-content position.
     /// </summary>
     /// <param name="byteOffset">
-    /// The byte offset to translate into a UTF-16 position.
+    /// The canonical byte offset to convert.
     /// </param>
     /// <returns>
-    /// The line and character of the UTF-16 position.
+    /// The zero-based line and UTF-16 character position.
     /// </returns>
     public (int Line, int Character) GetUtf16Position(int byteOffset)
     {
@@ -330,11 +332,22 @@ public sealed class SourceSnapshot
         }
 
         int lineStart = this.lineStarts[line];
+        int lineEnd = line + 1 < this.lineStarts.Count ? this.lineStarts[line + 1] : this.bytes.Length;
 
-        ReadOnlySpan<byte> prefix = this.bytes.AsSpan(lineStart, byteOffset - lineStart);
+        if (lineEnd > lineStart && this.bytes[lineEnd - 1] == (byte)'\n')
+        {
+            lineEnd--;
+        }
 
-        // Replacement decoding is intentional here.
-        // LSP coordinates are UTF-16 coordinates, not byte offsets.
+        if (lineEnd > lineStart && this.bytes[lineEnd - 1] == (byte)'\r')
+        {
+            lineEnd--;
+        }
+
+        int contentOffset = Math.Min(byteOffset, lineEnd);
+        ReadOnlySpan<byte> prefix = this.bytes.AsSpan(lineStart, contentOffset - lineStart);
+
+        // Replacement decoding is intentional for malformed UTF-8.
         int character = Encoding.UTF8.GetString(prefix).Length;
 
         return (line, character);

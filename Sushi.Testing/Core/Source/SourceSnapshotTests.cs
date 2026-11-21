@@ -22,7 +22,7 @@ public sealed class SourceSnapshotTests
             (byte)'b',
             (byte)'c'
         ];
-        
+
         SourceSnapshot snapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
 
         snapshot.Bytes
@@ -38,7 +38,7 @@ public sealed class SourceSnapshotTests
             .Should()
             .Be(3);
     }
-    
+
     [TestCase(TestName = "FromText Should Remove Leading BOM Character")]
     public void FromTextShouldRemoveLeadingBOMCharacter()
     {
@@ -98,5 +98,61 @@ public sealed class SourceSnapshotTests
         snapshot.Text
             .Should()
             .Be("abc");
+    }
+
+    [TestCase("a\r\nb", 0, 0, 0)]
+    [TestCase("a\r\nb", 1, 0, 1)]
+    [TestCase("a\r\nb", 2, 0, 1)]
+    [TestCase("a\r\nb", 3, 1, 0)]
+    [TestCase("a\r\nb", 4, 1, 1)]
+    [TestCase("a\nb", 1, 0, 1)]
+    [TestCase("a\nb", 2, 1, 0)]
+    [TestCase("a\rb", 1, 0, 1)]
+    [TestCase("a\rb", 2, 1, 0)]
+    [TestCase("a\r\n", 2, 0, 1)]
+    [TestCase("a\r\n", 3, 1, 0)]
+    [TestCase("🍣\r\nX", 4, 0, 2)]
+    [TestCase("🍣\r\nX", 5, 0, 2)]
+    [TestCase("🍣\r\nX", 6, 1, 0)]
+    [TestCase("🍣\r\nX", 7, 1, 1)]
+    public void GetUTF16PositionShouldMapLineTerminatorsToLineContentEnd(string text, int byteOffset, int expectedLine, int expectedCharacter)
+    {
+        SourceSnapshot snapshot = SourceSnapshot.FromText(testUri, null, text);
+
+        (int line, int character) = snapshot.GetUtf16Position(byteOffset);
+
+        line
+            .Should()
+            .Be(expectedLine);
+        
+        character
+            .Should()
+            .Be(expectedCharacter);
+    }
+
+    [TestCase("a\r\nb", 0, 1, 1)]
+    [TestCase("a\r\nb", 1, 0, 3)]
+    [TestCase("a\nb", 1, 0, 2)]
+    [TestCase("a\rb", 1, 0, 2)]
+    [TestCase("🍣\r\nX", 0, 2, 4)]
+    [TestCase("🍣\r\nX", 1, 0, 6)]
+    public void GetByteOffsetAndGetUTF16PositionShouldRoundTripValidEditorPositions(string text, int line, int character, int expectedByteOffset)
+    {
+        SourceSnapshot snapshot = SourceSnapshot.FromText(testUri, null, text);
+
+        int byteOffset = snapshot.GetByteOffset(line, character);
+        (int actualLine, int actualCharacter) = snapshot.GetUtf16Position(byteOffset);
+
+        byteOffset
+            .Should()
+            .Be(expectedByteOffset);
+        
+        actualLine
+            .Should()
+            .Be(line);
+        
+        actualCharacter
+            .Should()
+            .Be(character);
     }
 }

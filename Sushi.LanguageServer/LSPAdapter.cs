@@ -41,8 +41,8 @@ internal static class LSPAdapter
             throw new InvalidOperationException("Diagnostic belongs to a different source snapshot.");
         }
 
-        (int startLine, int startCharacter) = span.Snapshot.GetUtf16Position(span.Start);
-        (int endLine, int endCharacter) = span.Snapshot.GetUtf16Position(span.End);
+        (int startLine, int startCharacter) = span.Snapshot.GetUTF16Position(span.Start);
+        (int endLine, int endCharacter) = span.Snapshot.GetUTF16Position(span.End);
 
         return new Diagnostic
         {
