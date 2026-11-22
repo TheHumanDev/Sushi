@@ -11,7 +11,17 @@ public enum ErrorType
     InvalidUtf8 = 1,
     #endregion Core Errors
 
+    #region Toml Errors
+    TomlSyntaxError = 100,
+    TomlMissingRequiredKey = 101,
+    TomlInvalidValueType = 102,
+    TomlEmptyProjectName = 103,
+    TomlMissingBuildTargets = 104,
+    TomlUnknownDefaultBuildTarget = 105,
+    #endregion Toml Errors
+
     #region Syntax Errors
     UnterminatedBlockComment = 201,
+    ExpectedSyntax = 202,
     #endregion Syntax Errors
 }

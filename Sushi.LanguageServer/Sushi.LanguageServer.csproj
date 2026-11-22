@@ -9,6 +9,6 @@
         <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.19.11" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
+        <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
     </ItemGroup>
 </Project>

@@ -264,3 +264,6 @@ dotnet_diagnostic.CA2007.severity = none
 
 # Sometimes things need to be public for reflection, and this isn't an API so this one can just end up being noise.
 dotnet_diagnostic.CA1515.severity = none
+
+# Performance is a concern in a compiler, but sometimes lists are supposed to be immutable over performance optimization.
+dotnet_diagnostic.CA1859.severity = none

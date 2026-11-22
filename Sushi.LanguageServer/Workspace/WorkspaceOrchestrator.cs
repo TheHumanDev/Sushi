@@ -73,12 +73,16 @@ public sealed class WorkspaceOrchestrator : IDisposable
     /// <param name="diagnosticReporterFactory">
     /// The factory used to create new <see cref="IDiagnosticReporter" /> objects.
     /// </param>
-    public WorkspaceOrchestrator([NotNull] ISourceDocumentProvider documentProvider, [NotNull] IDiagnosticReporterFactory diagnosticReporterFactory)
+    /// <param name="projectMembership">
+    /// Associates source analyses with the projects that explicitly include them.
+    /// </param>
+    public WorkspaceOrchestrator([NotNull] ISourceDocumentProvider documentProvider, [NotNull] IDiagnosticReporterFactory diagnosticReporterFactory, [NotNull] WorkspaceProjectMembership projectMembership)
     {
         ArgumentNullException.ThrowIfNull(documentProvider);
         ArgumentNullException.ThrowIfNull(diagnosticReporterFactory);
+        ArgumentNullException.ThrowIfNull(projectMembership);
 
-        this.coordinator = new WorkspaceAnalysisCoordinator(this, documentProvider, diagnosticReporterFactory);
+        this.coordinator = new WorkspaceAnalysisCoordinator(this, documentProvider, diagnosticReporterFactory, projectMembership);
         this.documentProvider = documentProvider;
     }
 

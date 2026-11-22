@@ -17,7 +17,8 @@ public sealed class SourceAnalyzer : Analyzer
     /// </summary>
     private readonly SourceLexer lexer = new();
 
-    public async Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public override async Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(diagnosticReporter);
