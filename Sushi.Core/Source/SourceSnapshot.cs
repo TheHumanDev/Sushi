@@ -56,7 +56,7 @@ public sealed class SourceSnapshot
     /// <summary>
     /// Whether the canonical source is valid UTF-8.
     /// </summary>
-    public bool IsValidUtf8 => this.encodingIssues.Count == 0;
+    public bool IsValidUTF8 => this.encodingIssues.Count == 0;
 
     private SourceSnapshot([NotNull] Uri uri, int? version, [NotNull] byte[] bytes)
     {
@@ -254,7 +254,7 @@ public sealed class SourceSnapshot
         }
 
         ArgumentOutOfRangeException.ThrowIfNegative(character);
-        if (!this.IsValidUtf8)
+        if (!this.IsValidUTF8)
         {
             throw new InvalidOperationException("Editor positions cannot be resolved in malformed UTF-8 source.");
         }
