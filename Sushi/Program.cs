@@ -8,8 +8,10 @@ using Serilog.Events;
 using Serilog.Formatting.Compact;
 using Sushi.Commands;
 using Sushi.Compiler;
+using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Source;
+using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 using Sushi.Diagnostics;
@@ -158,6 +160,7 @@ internal static class Program
         services.AddSingleton<ISourceDocumentProvider, SushiSourceDocumentProvider>();
         services.AddSingleton<IDiagnosticReporterFactory, DiagnosticReporterFactory>();
         services.AddSingleton<ICommandProvider, SushiCommandProvider>();
+        services.AddSingleton<IProjectSourceLoader, ProjectSourceLoader>();
         services.AddTransient<ICommandContext, SushiCommandContext>(services
             => ActivatorUtilities.CreateInstance<SushiCommandContext>(services, command, args, levelSwitch));
     }

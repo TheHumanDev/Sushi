@@ -23,6 +23,9 @@ public sealed class SushiSourceDocumentType : ISourceDocumentType
     public bool IsValidCompilationRoot => false;
 
     /// <inheritdoc />
+    public bool IsSourceDocument => true;
+
+    /// <inheritdoc />
     public Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
         => this.analyzer.Analyze(snapshot, diagnosticReporter, cancellationToken);
 }

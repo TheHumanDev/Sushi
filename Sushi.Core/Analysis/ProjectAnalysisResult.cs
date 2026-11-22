@@ -1,7 +1,6 @@
-﻿using Sushi.Core.Analysis;
-using Sushi.Core.Source;
+﻿using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Analysis;
+namespace Sushi.Core.Analysis;
 
 /// <summary>
 /// Represents the compiler project analysis produced for a specific source snapshot.

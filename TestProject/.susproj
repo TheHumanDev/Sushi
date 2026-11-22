@@ -1,1 +1,11 @@
-﻿
+﻿name = "Test Project"
+assembly = "Test Project"
+
+language-version = "1.0"
+
+[build]
+default = "debug"
+sources = ["Build/**/*.sus"]
+
+[build.targets.debug]
+type = "Sushi.MVP.Debug"

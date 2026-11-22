@@ -1,4 +1,4 @@
-﻿namespace Sushi.Compiler.Analysis;
+﻿namespace Sushi.Core.Analysis;
 
 /// <summary>
 /// Represents the build configuration section of a sushi project file.

@@ -1,4 +1,4 @@
-﻿namespace Sushi.Compiler.Analysis;
+﻿namespace Sushi.Core.Analysis;
 
 /// <summary>
 /// Represents a solution with its defined configuration, loaded from source.

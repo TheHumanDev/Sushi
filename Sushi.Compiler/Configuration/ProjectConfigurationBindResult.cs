@@ -1,4 +1,4 @@
-﻿using Sushi.Compiler.Analysis;
+﻿using Sushi.Core.Analysis;
 
 namespace Sushi.Compiler.Configuration;
 

@@ -1,6 +1,6 @@
-﻿using Sushi.Compiler.Analysis;
-using Sushi.Compiler.Configuration.Toml;
+﻿using Sushi.Compiler.Configuration.Toml;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 

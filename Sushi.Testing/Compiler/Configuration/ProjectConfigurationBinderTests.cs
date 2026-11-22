@@ -1,8 +1,8 @@
 ﻿using AwesomeAssertions;
 using NUnit.Framework;
-using Sushi.Compiler.Analysis;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 

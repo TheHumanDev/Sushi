@@ -29,6 +29,11 @@ public interface ISourceDocumentType
     public bool IsValidCompilationRoot { get; }
 
     /// <summary>
+    /// If true, this document is considered a source code document.
+    /// </summary>
+    public bool IsSourceDocument { get; }
+
+    /// <summary>
     /// Analyzes a source snapshot.
     /// </summary>
     /// <param name="snapshot">
