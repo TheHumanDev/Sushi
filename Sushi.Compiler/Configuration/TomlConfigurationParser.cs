@@ -46,16 +46,6 @@ public sealed class TomlConfigurationParser
         return new TomlConfigurationParseResult(snapshot, syntax, document);
     }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    private static TomlConfigurationTable BuildDocument(SourceSnapshot snapshot, TomlParser parser, CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-    {
-        // Placeholder until this gets fleshed out
-        return new(
-            new Core.Source.SourceSpan()
-        );
-    }
-
     /// <summary>
     /// Converts Toml diagnostics to Sushi diagnostics.
     /// </summary>
