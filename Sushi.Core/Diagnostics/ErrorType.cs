@@ -22,5 +22,6 @@ public enum ErrorType
 
     #region Syntax Errors
     UnterminatedBlockComment = 201,
+    ExpectedSyntax = 202,
     #endregion Syntax Errors
 }
