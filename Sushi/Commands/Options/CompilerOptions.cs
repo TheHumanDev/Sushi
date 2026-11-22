@@ -33,7 +33,7 @@ internal sealed class CompilerOptions
 
         if (!context.Arguments.TryGetValue("path", out string? value))
         {
-            throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, "A path must be specified when compiling. Use the --path \"Path\\To\\File\\OrFolder.suspoj\" parameter.");
+            throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, "A path must be specified when compiling. Use the --path \"Path\\To\\File\\OrFolder.susproj\" parameter.");
         }
 
         options.Path = value;
