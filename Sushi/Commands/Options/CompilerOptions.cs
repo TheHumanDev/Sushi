@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Serilog.Events;
 using Sushi.Diagnostics.Exceptions;
 
@@ -41,7 +42,7 @@ internal sealed class CompilerOptions
 
         bool isFolderPath = Directory.Exists(options.Path);
 
-        IReadOnlyList<string> allowedExtensions = context.DocumentProvider.RegisteredExtensions;
+        IReadOnlyList<string> allowedExtensions = new ReadOnlyCollection<string>([.. context.DocumentProvider.DocumentTypes.Where(doc => doc.IsValidCompilationRoot).Select(doc => doc.Extension)]);
 
         if (!isFilePath && !isFolderPath)
         {
