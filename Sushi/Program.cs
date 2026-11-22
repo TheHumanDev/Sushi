@@ -52,22 +52,22 @@ internal static class Program
             ICommandContext context = ServiceProvider!.GetRequiredService<ICommandContext>();
             ICommandProvider provider = ServiceProvider!.GetRequiredService<ICommandProvider>();
 
-            ISushiCommand command = provider.Commands.Single(x => x.Name.Equals(args[0], StringComparison.OrdinalIgnoreCase));
+            ISushiCommand? command = provider.Commands.FirstOrDefault(x => x.Name.Equals(args[0], StringComparison.OrdinalIgnoreCase)) ?? throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Command {args[0]} was recognized by the command context, but no such command was found in the command registry. This is a bug.");
 
             CommandExecutionResult result = await command.Execute(context);
 
             if (!result.Success)
             {
-                Log.Error(result.FailureReason);
+                throw new SushiProgramException(result.ErrorType.Value, result.FailureReason);
             }
         }
-        catch (CompilerOptionsException exception)
+        catch (SushiProgramException exception)
         {
             Log.Error("{Message}", exception.Message);
             Exit(exception.Error switch
             {
-                CompilerOptionsError.InvalidParameterSyntax => ExitCode.InvalidParameterSyntax,
-                CompilerOptionsError.InvalidProjectFileOrFolder => ExitCode.InvalidProjectFileOrFolder,
+                SushiProgramError.InvalidParameterSyntax => ExitCode.InvalidParameterSyntax,
+                SushiProgramError.InvalidPath => ExitCode.InvalidProjectFileOrFolder,
                 _ => ExitCode.UnhandledException
             });
         }
@@ -163,7 +163,8 @@ internal static class Program
             ISushiLanguageServer languageServer = services.GetRequiredService<ISushiLanguageServer>();
             ISushiCompiler compiler = services.GetRequiredService<ISushiCompiler>();
             ICommandProvider provider = services.GetRequiredService<ICommandProvider>();
-            return new SushiCommandContext(command, args, provider, languageServer, compiler, levelSwitch);
+            ISourceDocumentProvider documentProvider = services.GetRequiredService<ISourceDocumentProvider>();
+            return new SushiCommandContext(command, args, provider, languageServer, compiler, levelSwitch, documentProvider);
         });
     }
     

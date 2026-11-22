@@ -23,6 +23,12 @@ public interface ISourceDocumentType
     public bool ChangesInvalidateEntireCache { get; }
 
     /// <summary>
+    /// If true, this source document type can act as a compilation root. That means that
+    /// it can be passed to the compiler as a command line argument. 
+    /// </summary>
+    public bool IsValidCompilationRoot { get; }
+
+    /// <summary>
     /// Analyzes a source snapshot.
     /// </summary>
     /// <param name="snapshot">

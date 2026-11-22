@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using Serilog.Core;
 using Sushi.Compiler;
+using Sushi.Core.Source;
 using Sushi.Diagnostics.Exceptions;
 using Sushi.LanguageServer;
 
@@ -23,6 +24,8 @@ public sealed class SushiCommandContext : ICommandContext
     /// <inheritdoc />
     public ICommandProvider Provider { get; }
 
+    /// <inheritdoc />
+    public ISourceDocumentProvider DocumentProvider { get; }
     /// <inheritdoc />
     public ISushiCompiler Compiler { get; }
 
@@ -53,17 +56,26 @@ public sealed class SushiCommandContext : ICommandContext
     /// <param name="levelSwitch">
     /// The level switch used to switch logging level.
     /// </param>
-    public SushiCommandContext([NotNull] string command, [NotNull] string[] args, [NotNull] ICommandProvider provider, [NotNull] ISushiLanguageServer languageServer, [NotNull] ISushiCompiler compiler, [NotNull] LoggingLevelSwitch levelSwitch)
+    public SushiCommandContext(
+        [NotNull] string command,
+        [NotNull] string[] args,
+        [NotNull] ICommandProvider provider,
+        [NotNull] ISushiLanguageServer languageServer,
+        [NotNull] ISushiCompiler compiler,
+        [NotNull] LoggingLevelSwitch levelSwitch,
+        [NotNull] ISourceDocumentProvider documentProvider)
     {
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(provider);
         ArgumentNullException.ThrowIfNull(languageServer);
         ArgumentNullException.ThrowIfNull(compiler);
         ArgumentNullException.ThrowIfNull(levelSwitch);
+        ArgumentNullException.ThrowIfNull(documentProvider);
         this.Provider = provider;
         this.Compiler = compiler;
         this.LanguageServer = languageServer;
         this.LevelSwitch = levelSwitch;
+        this.DocumentProvider = documentProvider;
         this.ConvertCommandLineArguments(command, args);
     }
 
@@ -76,7 +88,7 @@ public sealed class SushiCommandContext : ICommandContext
     /// <param name="args">
     /// The raw command line arguments.
     /// </param>
-    /// <exception cref="CompilerOptionsException">
+    /// <exception cref="SushiProgramException">
     /// Thrown when the syntax of the command line arguments is invalid.
     /// </exception>
     [MemberNotNull(nameof(Arguments), nameof(Flags))]
@@ -88,7 +100,10 @@ public sealed class SushiCommandContext : ICommandContext
 
         string? key = null;
 
-        List<CommandArgument> allowedArguments = [.. this.Provider.Commands.SelectMany(command => command.Arguments)];
+        ISushiCommand? expectedCommand = this.Provider.Commands.FirstOrDefault(cmd => cmd.Name.Equals(command, StringComparison.OrdinalIgnoreCase))
+        ?? throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"\"{command}\" is not a recognized command name.");
+
+        IReadOnlyList<CommandArgument> allowedArguments = expectedCommand.Arguments;
 
         bool isFirstArg = true;
 
@@ -110,7 +125,7 @@ public sealed class SushiCommandContext : ICommandContext
 
                 if (!allowedArguments.Any(argument => argument.Name.Equals(key, StringComparison.OrdinalIgnoreCase) && !argument.IsFlag))
                 {
-                    throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, $"Invalid key \"{arg}\".");
+                    throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Invalid key \"{arg}\".");
                 }
 
                 isFirstArg = false;
@@ -122,9 +137,9 @@ public sealed class SushiCommandContext : ICommandContext
 
                 flags.Add(flag);
 
-                if (!allowedArguments.Any(argument => argument.Name.Equals(key, StringComparison.OrdinalIgnoreCase) && argument.IsFlag))
+                if (!allowedArguments.Any(argument => argument.Name.Equals(flag, StringComparison.OrdinalIgnoreCase) && argument.IsFlag))
                 {
-                    throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, $"Invalid flag \"{arg}\".");
+                    throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Invalid flag \"{arg}\".");
                 }
 
                 isFirstArg = false;
@@ -132,17 +147,17 @@ public sealed class SushiCommandContext : ICommandContext
             }
             else
             {
-                ISushiCommand? expectedCommand = this.Provider.Commands.FirstOrDefault(cmd => cmd.Name.Equals(command, StringComparison.OrdinalIgnoreCase));
-
-                rawInput = isFirstArg && expectedCommand is not null && expectedCommand.AllowsUnnamedParameter
+                rawInput = isFirstArg && expectedCommand.AllowsUnnamedParameter
                     ? arg
-                    : throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, $"Invalid parameter {arg} with no key specified. Please use key value pairs (--project \"C:\\Path\\To\\Folder\") or flags (-debug).");
+                    : throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Invalid parameter {arg} with no key specified. Please use key value pairs (--project \"C:\\Path\\To\\Folder\") or flags (-debug).");
+
+                isFirstArg = false;
             }
         }
 
         if (key is not null)
         {
-            throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, $"Parameter --{key} requires a value.");
+            throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Parameter --{key} requires a value.");
         }
 
         this.Arguments = new ReadOnlyDictionary<string, string>(arguments);

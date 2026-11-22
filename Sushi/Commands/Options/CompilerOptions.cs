@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using Serilog.Events;
 using Sushi.Diagnostics.Exceptions;
-using Sushi.LanguageServer;
 
 namespace Sushi.Commands.Options;
 
@@ -34,11 +32,58 @@ internal sealed class CompilerOptions
 
         if (!context.Arguments.TryGetValue("path", out string? value))
         {
-            throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, "A path must be specified when compiling. Use the --path \"Path\\To\\File\\OrFolder.suspoj\" parameter.");
+            throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, "A path must be specified when compiling. Use the --path \"Path\\To\\File\\OrFolder.suspoj\" parameter.");
         }
 
         options.Path = value;
 
+        bool isFilePath = File.Exists(options.Path);
+
+        bool isFolderPath = Directory.Exists(options.Path);
+
+        IReadOnlyList<string> allowedExtensions = context.DocumentProvider.RegisteredExtensions;
+
+        if (!isFilePath && !isFolderPath)
+        {
+            throw new SushiProgramException(SushiProgramError.InvalidPath, $"File or Folder \"{options.Path}\" does not exist on disk. Check your inputs.");
+        }
+
+        if (isFilePath && !IsValidCompilationFileExtension(options.Path, allowedExtensions))
+        {
+            throw new SushiProgramException(SushiProgramError.InvalidPath, $"File \"{options.Path}\" is not a valid .susproj or .susln file.");
+        }
+
+        if (isFolderPath)
+        {
+            // No need to prefer .susln over .susproj in this step, because we will check that later downstream.
+            string? projectFile = Directory.EnumerateFiles(options.Path, "*.*", SearchOption.TopDirectoryOnly)
+                .FirstOrDefault(x => IsValidCompilationFileExtension(x, allowedExtensions));
+
+            if (string.IsNullOrWhiteSpace(projectFile))
+            {
+                throw new SushiProgramException(SushiProgramError.InvalidPath, $"Folder \"{options.Path}\" does not contain a valid .susproj or .susln file. Make sure it is in the top directory and not a sub directory.");
+            }
+        }
+
         return Task.FromResult(options);
+    }
+
+    /// <summary>
+    /// Checks if the file path is a valid compilation file based on its extension.
+    /// </summary>
+    /// <param name="file">
+    /// The file path to check.
+    /// </param>
+    /// <param name="allowedExtensions">
+    /// The list of allowed file extensions.
+    /// </param>
+    /// <returns>
+    /// True if the file path has a .susproj or .susln extension. False otherwise.
+    /// </returns>
+    private static bool IsValidCompilationFileExtension(string file, IReadOnlyList<string> allowedExtensions)
+    {
+        string extension = System.IO.Path.GetExtension(file).Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        return allowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
     }
 }

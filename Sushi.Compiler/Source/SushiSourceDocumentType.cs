@@ -16,7 +16,11 @@ public sealed class SushiSourceDocumentType : ISourceDocumentType
     /// <inheritdoc />
     public string Extension { get; } = "sus";
 
+    /// <inheritdoc />
     public bool ChangesInvalidateEntireCache => false;
+
+    /// <inheritdoc />
+    public bool IsValidCompilationRoot => false;
 
     /// <inheritdoc />
     public Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)

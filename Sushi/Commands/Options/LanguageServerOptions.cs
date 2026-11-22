@@ -41,7 +41,7 @@ public sealed class LanguageServerOptions
         {
             if (!IPEndPoint.TryParse(endpointString, out IPEndPoint? endpoint))
             {
-                throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, $"Invalid TCP endpoint {endpointString}.");
+                throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Invalid TCP endpoint {endpointString}.");
             }
 
             options.LSPTransportMethod = LSPTransportMethod.TCP;
@@ -50,12 +50,17 @@ public sealed class LanguageServerOptions
 
         if (context.Arguments.ContainsKey("tcp") && context.Flags.Contains("stdio"))
         {
-            throw new CompilerOptionsException(CompilerOptionsError.InvalidParameterSyntax, $"Cannot use LSP with both --tcp and -stdio parameters. Choose one or the other.");
+            throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Cannot use LSP with both --tcp and -stdio parameters. Choose one or the other.");
         }
 
         if (context.Flags.Contains("stdio"))
         {
             options.LSPTransportMethod = LSPTransportMethod.Stdio;
+        }
+
+        if (options.LSPTransportMethod is LSPTransportMethod.None)
+        {
+            throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, "LSP mode requires a transport method. Use -stdio or --tcp ip:port.");
         }
 
         return Task.FromResult(options);

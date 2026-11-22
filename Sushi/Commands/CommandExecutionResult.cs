@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Sushi.Diagnostics.Exceptions;
 
 namespace Sushi.Commands;
 
@@ -15,8 +16,14 @@ public sealed class CommandExecutionResult
     /// <summary>
     /// True if the command execution was successful. False otherwise.
     /// </summary>
+    [MemberNotNullWhen(false, nameof(ErrorType))]
     [MemberNotNullWhen(false, nameof(FailureReason))]
     public bool Success { get; init; }
+
+    /// <summary>
+    /// The type of the error.
+    /// </summary>
+    public SushiProgramError? ErrorType { get; init; }
 
     /// <summary>
     /// The reason the command execution failed.
@@ -34,11 +41,19 @@ public sealed class CommandExecutionResult
     /// <summary>
     /// Creates a failed <see cref="CommandExecutionResult" /> with the specified failure reason. 
     /// </summary>
+    /// <param name="errorType">
+    /// The type of the error.
+    /// </param>
     /// <param name="failureReason">
     /// The reason the command execution failed.
     /// </param>
     /// <returns>
     /// The new <see cref="CommandExecutionResult" />.
     /// </returns>
-    public static CommandExecutionResult FromFailure(string failureReason) => new() { Success = false, FailureReason = failureReason };
+    public static CommandExecutionResult FromFailure(SushiProgramError errorType, string failureReason) => new()
+    {
+        Success = false,
+        ErrorType = errorType,
+        FailureReason = failureReason
+    };
 }

@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Sushi.Commands.Options;
 using Sushi.Diagnostics;
+using Sushi.Diagnostics.Exceptions;
 
 namespace Sushi.Commands;
 
@@ -33,9 +34,16 @@ public sealed class SushiCompileCommand : ISushiCommand
     /// <inheritdoc />
     public async Task<CommandExecutionResult> Execute([NotNull] ICommandContext context)
     {
-        CompilerOptions options = await CompilerOptions.FromContext(context);
+        try
+        {
+            CompilerOptions options = await CompilerOptions.FromContext(context);
 
-        await Diag.Monitor("Compilation", context.Compiler.CompileJob);
+            await Diag.Monitor("Compilation", context.Compiler.CompileJob);
+        }
+        catch (SushiProgramException exception)
+        {
+            return CommandExecutionResult.FromFailure(exception.Error, exception.Message);
+        }
 
         return CommandExecutionResult.FromSuccess();
     }

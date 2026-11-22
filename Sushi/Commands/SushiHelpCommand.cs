@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Serilog;
+using Sushi.Diagnostics.Exceptions;
 
 namespace Sushi.Commands;
 
@@ -42,11 +44,16 @@ public sealed class SushiHelpCommand : ISushiCommand
 
         if (command is null)
         {
-            return CommandExecutionResult.FromFailure($"\"{commandName}\" is not a recognized command name.");
+            return CommandExecutionResult.FromFailure(SushiProgramError.InvalidParameterSyntax, $"\"{commandName}\" is not a recognized command name.");
         }
 
         Log.Information(command.Name);
         Log.Information(command.Description);
+
+        foreach (CommandArgument argument in command.Arguments.OrderBy(arg => arg.IsFlag))
+        {
+            Log.Information($"{(argument.IsFlag ? "-" : "--")}{argument.Name}");
+        }
 
         return CommandExecutionResult.FromSuccess();
     }

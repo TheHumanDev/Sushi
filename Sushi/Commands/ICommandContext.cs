@@ -1,5 +1,6 @@
 ﻿using Serilog.Core;
 using Sushi.Compiler;
+using Sushi.Core.Source;
 using Sushi.LanguageServer;
 
 namespace Sushi.Commands;
@@ -38,6 +39,11 @@ public interface ICommandContext
     /// The language server used to communicate with an LSP client, such as VS Code.
     /// </summary>
     public ISushiLanguageServer LanguageServer { get; }
+
+    /// <summary>
+    /// The source document provider used to discover registered document types.
+    /// </summary>
+    public ISourceDocumentProvider DocumentProvider { get; }
 
     /// <summary>
     /// The level at which the logger should log events for.

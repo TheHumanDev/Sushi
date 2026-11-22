@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Sushi.Commands.Options;
 using Sushi.Diagnostics;
+using Sushi.Diagnostics.Exceptions;
 
 namespace Sushi.Commands;
 
@@ -36,9 +37,16 @@ public sealed class SushiLanguageServerCommand : ISushiCommand
     /// <inheritdoc />
     public async Task<CommandExecutionResult> Execute([NotNull] ICommandContext context)
     {
-        LanguageServerOptions options = await LanguageServerOptions.FromContext(context);
+        try
+        {
+            LanguageServerOptions options = await LanguageServerOptions.FromContext(context);
 
-        await Diag.Monitor("LanguageServer", () => context.LanguageServer.Run(options.LSPTransportMethod, options.ListenEndpoint, AppMeta.GetVersion()));
+            await Diag.Monitor("LanguageServer", () => context.LanguageServer.Run(options.LSPTransportMethod, options.ListenEndpoint, AppMeta.GetVersion()));
+        }
+        catch (SushiProgramException exception)
+        {
+            return CommandExecutionResult.FromFailure(exception.Error, exception.Message);
+        }
 
         return CommandExecutionResult.FromSuccess();
     }
