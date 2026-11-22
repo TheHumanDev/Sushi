@@ -44,6 +44,9 @@ public sealed class SushiCommandContext : ICommandContext
     /// <param name="args">
     /// The raw command line arguments.
     /// </param>
+    /// <param name="levelSwitch">
+    /// The level switch used to switch logging level.
+    /// </param>
     /// <param name="provider">
     /// The command provider used to discover registered commands.
     /// </param>
@@ -53,23 +56,22 @@ public sealed class SushiCommandContext : ICommandContext
     /// <param name="compiler">
     /// The compiler.
     /// </param>
-    /// <param name="levelSwitch">
-    /// The level switch used to switch logging level.
-    /// </param>
     public SushiCommandContext(
         [NotNull] string command,
         [NotNull] string[] args,
+        [NotNull] LoggingLevelSwitch levelSwitch,
         [NotNull] ICommandProvider provider,
         [NotNull] ISushiLanguageServer languageServer,
         [NotNull] ISushiCompiler compiler,
-        [NotNull] LoggingLevelSwitch levelSwitch,
         [NotNull] ISourceDocumentProvider documentProvider)
     {
+        ArgumentNullException.ThrowIfNull(command);
         ArgumentNullException.ThrowIfNull(args);
+        ArgumentNullException.ThrowIfNull(levelSwitch);
         ArgumentNullException.ThrowIfNull(provider);
         ArgumentNullException.ThrowIfNull(languageServer);
         ArgumentNullException.ThrowIfNull(compiler);
-        ArgumentNullException.ThrowIfNull(levelSwitch);
+
         ArgumentNullException.ThrowIfNull(documentProvider);
         this.Provider = provider;
         this.Compiler = compiler;

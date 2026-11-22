@@ -158,14 +158,8 @@ internal static class Program
         services.AddSingleton<ISourceDocumentProvider, SushiSourceDocumentProvider>();
         services.AddSingleton<IDiagnosticReporterFactory, DiagnosticReporterFactory>();
         services.AddSingleton<ICommandProvider, SushiCommandProvider>();
-        services.AddSingleton<ICommandContext, SushiCommandContext>(services =>
-        {
-            ISushiLanguageServer languageServer = services.GetRequiredService<ISushiLanguageServer>();
-            ISushiCompiler compiler = services.GetRequiredService<ISushiCompiler>();
-            ICommandProvider provider = services.GetRequiredService<ICommandProvider>();
-            ISourceDocumentProvider documentProvider = services.GetRequiredService<ISourceDocumentProvider>();
-            return new SushiCommandContext(command, args, provider, languageServer, compiler, levelSwitch, documentProvider);
-        });
+        services.AddTransient<ICommandContext, SushiCommandContext>(services
+            => ActivatorUtilities.CreateInstance<SushiCommandContext>(services, command, args, levelSwitch));
     }
     
     /// <summary>
