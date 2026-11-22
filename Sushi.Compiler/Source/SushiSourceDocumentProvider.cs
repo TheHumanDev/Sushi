@@ -10,6 +10,8 @@ public sealed class SushiSourceDocumentProvider : ISourceDocumentProvider
 {
     /// <inheritdoc />
     public IReadOnlyList<ISourceDocumentType> DocumentTypes { get; } = new ReadOnlyCollection<ISourceDocumentType>([
-       new SushiSourceDocumentType()
+       new SushiSourceDocumentType(),
+       new SushiProjectDocumentType(),
+       new SushiSolutionDocumentType()
     ]);
 }
