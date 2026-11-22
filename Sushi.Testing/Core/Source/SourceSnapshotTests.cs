@@ -39,23 +39,121 @@ public sealed class SourceSnapshotTests
             .Be(3);
     }
 
-    [TestCase(TestName = "FromText Should Remove Leading BOM Character")]
-    public void FromTextShouldRemoveLeadingBOMCharacter()
+    [TestCase(TestName = "FromUTF8 Should Preserve Source Without BOM")]
+    public void FromUTF8ShouldPreserveSourceWithoutBOM()
     {
-        SourceSnapshot snapshot = SourceSnapshot.FromText(testUri, version: null, "\uFEFFabc");
+        byte[] source = Encoding.UTF8.GetBytes("abc");
+
+        SourceSnapshot snapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
+
+        snapshot.Bytes
+            .ToArray()
+            .Should()
+            .Equal(source);
 
         snapshot.Text
             .Should()
             .Be("abc");
 
+        snapshot.SourceLength
+            .Should()
+            .Be(source.Length);
+    }
+
+    [TestCase(TestName = "FromUTF8 Should Preserve Valid Multibyte UTF-8")]
+    public void FromUTF8ShouldPreserveValidMultibyteUTF8()
+    {
+        const string text = "寿司";
+
+        byte[] source = Encoding.UTF8.GetBytes(text);
+
+        SourceSnapshot snapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
+
         snapshot.Bytes
             .ToArray()
             .Should()
-            .Equal(Encoding.UTF8.GetBytes("abc"));
+            .Equal(source);
+
+        snapshot.Text
+            .Should()
+            .Be(text);
 
         snapshot.SourceLength
             .Should()
-            .Be(3);
+            .Be(source.Length);
+
+        snapshot.IsValidUTF8
+            .Should()
+            .BeTrue();
+
+        snapshot.EncodingIssues
+            .Should()
+            .BeEmpty();
+    }
+
+    [TestCase(TestName = "FromUtf8 Should Preserve Malformed UTF-8 Bytes")]
+    public void FromUTF8ShouldPreserveMalformedUTF8Bytes()
+    {
+        byte[] source =
+        [
+            (byte)'a',
+            0xFF,
+            (byte)'b'
+        ];
+
+        SourceSnapshot snapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
+
+        snapshot.Bytes
+            .ToArray()
+            .Should()
+            .Equal(source);
+
+        snapshot.SourceLength
+            .Should()
+            .Be(source.Length);
+
+        snapshot.IsValidUTF8
+            .Should()
+            .BeFalse();
+
+        snapshot.EncodingIssues
+            .Should()
+            .ContainSingle()
+            .Which
+            .Should()
+            .Be(new SourceEncodingIssue(1, 1));
+    }
+
+    [TestCase(TestName = "FromUtf8 Should Preserve Truncated UTF-8 Sequence As One Encoding Issue")]
+    public void FromUTF8ShouldPreserveTruncatedUTF8SequenceAsOneEncodingIssue()
+    {
+        byte[] source =
+        [
+            (byte)'a',
+
+            // Beginning of the three-byte sequence for U+20AC EURO SIGN,
+            // with the final continuation byte missing.
+            0xE2,
+            0x82
+        ];
+
+        SourceSnapshot snapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
+
+        snapshot.Bytes
+            .ToArray()
+            .Should()
+            .Equal(source);
+
+        snapshot.IsValidUTF8
+            .Should()
+            .BeFalse();
+
+        snapshot.EncodingIssues
+            .Should()
+            .ContainSingle()
+            .Which
+            .Should()
+            .Be(new SourceEncodingIssue(1, 2));
     }
 
     [TestCase(TestName = "FromUTF8 Should Preserve Physical Line Terminators")]
@@ -81,6 +179,25 @@ public sealed class SourceSnapshotTests
             .Equal(0, 3, 5, 7);
     }
 
+    [TestCase(TestName = "FromText Should Remove Leading BOM Character")]
+    public void FromTextShouldRemoveLeadingBOMCharacter()
+    {
+        SourceSnapshot snapshot = SourceSnapshot.FromText(testUri, version: null, "\uFEFFabc");
+
+        snapshot.Text
+            .Should()
+            .Be("abc");
+
+        snapshot.Bytes
+            .ToArray()
+            .Should()
+            .Equal(Encoding.UTF8.GetBytes("abc"));
+
+        snapshot.SourceLength
+            .Should()
+            .Be(3);
+    }
+
     [TestCase(TestName = "FromUTF8 Should Copy Input Bytes")]
     public void FromUTF8ShouldCopyInputBytes()
     {
@@ -98,6 +215,70 @@ public sealed class SourceSnapshotTests
         snapshot.Text
             .Should()
             .Be("abc");
+    }
+
+    [TestCase(TestName = "FromUtf8 And FromText Should Produce Equivalent Canonical Source")]
+    public void FromUtf8AndFromTextShouldProduceEquivalentCanonicalSource()
+    {
+        byte[] source =
+        [
+            0xEF,
+            0xBB,
+            0xBF,
+            (byte)'a',
+            (byte)'b',
+            (byte)'c'
+        ];
+
+        SourceSnapshot byteSnapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
+
+        SourceSnapshot textSnapshot = SourceSnapshot.FromText(testUri, version: null, "\uFEFFabc");
+
+        byteSnapshot.Bytes
+            .ToArray()
+            .Should()
+            .Equal(textSnapshot.Bytes.ToArray());
+
+        byteSnapshot.Text
+            .Should()
+            .Be(textSnapshot.Text);
+
+        byteSnapshot.SourceLength
+            .Should()
+            .Be(textSnapshot.SourceLength);
+
+        byteSnapshot.EncodingIssues
+            .Should()
+            .Equal(textSnapshot.EncodingIssues);
+    }
+
+    [TestCase(TestName = "GetUtf16Position Should Handle Malformed UTF-8")]
+    public void GetUtf16PositionShouldHandleMalformedUTF8()
+    {
+        byte[] source =
+        [
+            (byte)'a',
+            0xFF,
+            (byte)'b'
+        ];
+
+        SourceSnapshot snapshot = SourceSnapshot.FromUTF8(testUri, version: null, source);
+
+        snapshot.GetUTF16Position(0)
+            .Should()
+            .Be((0, 0));
+
+        snapshot.GetUTF16Position(1)
+            .Should()
+            .Be((0, 1));
+
+        snapshot.GetUTF16Position(2)
+            .Should()
+            .Be((0, 2));
+
+        snapshot.GetUTF16Position(3)
+            .Should()
+            .Be((0, 3));
     }
 
     [TestCase("a\r\nb", 0, 0, 0)]
