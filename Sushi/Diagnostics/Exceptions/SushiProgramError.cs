@@ -1,7 +1,7 @@
 ﻿namespace Sushi.Diagnostics.Exceptions;
 
 /// <summary>
-/// Represents the type of error that <see cref="CompilerOptions"/> threw.
+/// Represents the type of error that the Sushi program threw.
 /// </summary>
 public enum SushiProgramError
 {
