@@ -11,7 +11,7 @@ public sealed class SushiSolutionDocumentType : ISourceDocumentType
     private readonly SolutionAnalyzer analyzer = new();
 
     /// <inheritdoc />
-    public string Extension => "susproj";
+    public string Extension => "susln";
 
     /// <inheritdoc />
     public bool ChangesInvalidateEntireCache => true;
