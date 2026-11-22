@@ -1,4 +1,5 @@
-﻿using Sushi.Core.Source;
+﻿using System.Collections.ObjectModel;
+using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Configuration.Toml;
 
@@ -18,7 +19,7 @@ public sealed class TomlConfigurationArray(SourceSpan span) : TomlConfigurationV
     /// <summary>
     /// Gets the list of items in the Toml configuration array.
     /// </summary>
-    public IReadOnlyList<TomlConfigurationValue> Items => this.items;
+    public IReadOnlyList<TomlConfigurationValue> Items => new ReadOnlyCollection<TomlConfigurationValue>([..this.items]);
 
     /// <summary>
     /// Adds a configuration value to the array.

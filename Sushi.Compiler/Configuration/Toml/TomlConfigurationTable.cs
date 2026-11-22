@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Configuration.Toml;
@@ -19,7 +20,7 @@ public sealed class TomlConfigurationTable(SourceSpan span) : TomlConfigurationV
     /// <summary>
     /// Gets the properties in the table.
     /// </summary>
-    public IReadOnlyDictionary<string, TomlConfigurationProperty> Properties => this.properties;
+    public IReadOnlyDictionary<string, TomlConfigurationProperty> Properties => this.properties.ToImmutableDictionary();
 
     /// <summary>
     /// Adds a new value to the configuration table.
