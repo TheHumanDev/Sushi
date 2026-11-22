@@ -18,9 +18,11 @@
     "files": [
         "client/out/**",
         "server/**",
-        "syntaxes/sushi.tmLanguage.json",
-        "sushi-language-configuration.json",
+        "syntaxes/*.tmLanguage.json",
+        "*-language-configuration.json",
         "Sushi.png",
+        "Susproj.png",
+        "Susln.png",
         "README.md",
         "LICENSE"
     ],
