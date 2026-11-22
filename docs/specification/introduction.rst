@@ -26,3 +26,4 @@ a guide to start with. For a guide, see the :doc:`Home <../index>` page.
     1. Core Design Goals and Terminology <1/section>
     2. Source Text <2/section>
     3. Lexical Structure <3/section>
+    4. Project and Solution Configuration <4/section>
