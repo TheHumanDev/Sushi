@@ -36,8 +36,12 @@ public sealed class SolutionAnalyzer : Analyzer
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        bool hasSyntaxErrors = localDiagnostics.HasErrors();
+
+        SolutionDefinition? solution = hasSyntaxErrors ? null : new SolutionDefinition();
+
         diagnosticReporter.CommitReporter(localDiagnostics);
 
-        return Task.FromResult<AnalysisResult>(new SolutionAnalysisResult(snapshot, new SolutionDefinition()));
+        return Task.FromResult<AnalysisResult>(new SolutionAnalysisResult(snapshot, solution));
     }
 }
