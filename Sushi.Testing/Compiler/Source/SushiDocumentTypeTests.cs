@@ -41,7 +41,7 @@ public sealed class SushiDocumentTypeTests
             .Contain(extension);
     }
 
-[TestCase(TestName = "Registered Document Extensions Must Be Unique")]
+    [TestCase(TestName = "Registered Document Extensions Must Be Unique")]
     public void RegisteredDocumentExtensionsMustBeUnique()
     {
         ISourceDocumentProvider provider = new SushiSourceDocumentProvider();
@@ -56,7 +56,7 @@ public sealed class SushiDocumentTypeTests
         uniqueCount
             .Should()
             .Be(extensions.Count);
-        
+
         extensions
             .Should()
             .BeEquivalentTo(["sus", "susproj", "susln"]);
@@ -117,7 +117,7 @@ public sealed class SushiDocumentTypeTests
         result.Snapshot
             .Should()
             .BeSameAs(snapshot);
-        
+
         result.Solution
             .Should()
             .NotBeNull();
@@ -143,11 +143,11 @@ public sealed class SushiDocumentTypeTests
         result.Snapshot
             .Should()
             .BeSameAs(snapshot);
-        
+
         diagnostics
             .Should()
             .Contain(diagnostic => diagnostic.IsType(ErrorType.TomlSyntaxError));
-        
+
         diagnostics
             .Should()
             .OnlyContain(diagnostic => ReferenceEquals(diagnostic.Span.Snapshot, snapshot));
@@ -185,7 +185,7 @@ public sealed class SushiDocumentTypeTests
         diagnostics[0].Span.Start
             .Should()
             .Be(0);
-        
+
         diagnostics[0].Span.End
             .Should()
             .Be(1);
