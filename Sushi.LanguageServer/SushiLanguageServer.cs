@@ -4,12 +4,17 @@ using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Sushi.Core.Configuration;
+using Sushi.Core.Diagnostics;
+using Sushi.Core.Source;
+using Sushi.LanguageServer.Handlers;
+using Sushi.LanguageServer.Workspace;
 using LSP = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 
 namespace Sushi.LanguageServer;
 
 /// <inheritdoc cref="ISushiLanguageServer"/>
-public sealed class SushiLanguageServer : ISushiLanguageServer
+public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider, IDiagnosticReporterFactory diagnosticReporterFactory, IProjectSourceLoader sourceLoader) : ISushiLanguageServer
 {
     /// <inheritdoc />
     public async Task Run(LSPTransportMethod transportMethod, IPEndPoint? listenEndpoint, string version)
@@ -93,6 +98,8 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
     /// </returns>
     private async Task RunLanguageServer(Stream input, Stream output, string version)
     {
+        WorkspaceProjectMembership projectMembership = new(sourceLoader);
+        WorkspaceOrchestrator workspace = new(documentProvider, diagnosticReporterFactory, projectMembership);
         using LSP server = await LSP.From(options => options
             .WithInput(input)
             .WithOutput(output)
@@ -101,7 +108,19 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
                 Name = "Sushi",
                 Version = version
             })
-            .WithServices(services => services.AddSingleton(this))
+            .OnInitialize((server, request, token) => workspace.Initialize([.. request.WorkspaceFolders ?? []], token))
+            .OnStarted((server, token) => workspace.Start(server, token))
+            .WithServices(services =>
+            {
+                services.AddSingleton(this);
+                services.AddSingleton(workspace);
+                services.AddSingleton(documentProvider);
+                services.AddSingleton(diagnosticReporterFactory);
+                services.AddSingleton(projectMembership);
+                services.AddSingleton(sourceLoader);
+            })
+            .WithHandler<WorkspaceFoldersHandler>()
+            .WithHandler<WatchedFilesHandler>()
         );
 
         try
@@ -110,6 +129,7 @@ public sealed class SushiLanguageServer : ISushiLanguageServer
         }
         finally
         {
+            workspace.Dispose();
         }
     }
 }
