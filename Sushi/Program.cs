@@ -6,9 +6,12 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using Sushi.Commands;
 using Sushi.Compiler;
+using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Source;
+using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 using Sushi.Diagnostics;
@@ -40,26 +43,33 @@ internal static class Program
 #pragma warning disable CA1031 // Do not catch general exception types
         try
         {
+            if (args is null || args.Length == 0)
+            {
+                Log.Information("Use the help command to see available commands. ex: \"Sushi help\"");
+                Exit(ExitCode.Success);
+            }
+
             Initialize(args);
 
-            ISushiLanguageServer languageServer = ServiceProvider!.GetRequiredService<ISushiLanguageServer>();
-            ISushiCompiler compiler = ServiceProvider!.GetRequiredService<ISushiCompiler>();
+            ICommandContext context = ServiceProvider!.GetRequiredService<ICommandContext>();
+            ICommandProvider provider = ServiceProvider!.GetRequiredService<ICommandProvider>();
 
-            if (AppMeta.Options.IsInLanguageServerMode)
+            ISushiCommand? command = provider.Commands.FirstOrDefault(x => x.Name.Equals(args[0], StringComparison.OrdinalIgnoreCase)) ?? throw new SushiProgramException(SushiProgramError.InvalidParameterSyntax, $"Command {args[0]} was recognized by the command context, but no such command was found in the command registry. This is a bug.");
+
+            CommandExecutionResult result = await command.Execute(context);
+
+            if (!result.Success)
             {
-                await Diag.Monitor("LanguageServer", () => languageServer.Run(AppMeta.Options.LSPTransportMethod, AppMeta.Options.ListenEndpoint, AppMeta.GetVersion()));
-            }
-            else
-            {
-                await Diag.Monitor("Compilation", compiler.CompileJob);
+                throw new SushiProgramException(result.ErrorType.Value, result.FailureReason);
             }
         }
-        catch (CompilerOptionsException exception)
+        catch (SushiProgramException exception)
         {
             Log.Error("{Message}", exception.Message);
             Exit(exception.Error switch
             {
-                CompilerOptionsError.InvalidParameterSyntax => ExitCode.InvalidParameterSyntax,
+                SushiProgramError.InvalidParameterSyntax => ExitCode.InvalidParameterSyntax,
+                SushiProgramError.InvalidPath => ExitCode.InvalidProjectFileOrFolder,
                 _ => ExitCode.UnhandledException
             });
         }
@@ -72,12 +82,12 @@ internal static class Program
     }
 
     /// <summary>
-    /// Initializes the compiler.
+    /// Initializes the program.
     /// </summary>
     /// <param name="args">
     /// The command line arguments.
     /// </param>
-    private static void Initialize(string[] args)
+    private static void Initialize([NotNull] string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
 
@@ -104,24 +114,26 @@ internal static class Program
 
         AppDomain.CurrentDomain.ProcessExit += OnExit;
 
-        InitializeDependencyInjection();
-
-        AppMeta.Options = CompilerOptions.FromCommandLineArguments(args);
-
-        if (AppMeta.Options.IsDebugLoggingEnabled)
-        {
-            levelSwitch.MinimumLevel = LogEventLevel.Debug;
-        }
+        InitializeDependencyInjection(args[0], [.. args.Skip(1)], levelSwitch);
     }
 
     /// <summary>
     /// Initializes the dependency injection container for the application.
     /// </summary>
-    private static void InitializeDependencyInjection()
+    /// <param name="command">
+    /// The command used to initialize the command provider.
+    /// </param>
+    /// <param name="args">
+    /// The command line arguments used to initialize the command provider.
+    /// </param>
+    /// <param name="levelSwitch">
+    /// The switch used to change the logging level of the logger after configuration.
+    /// </param>
+    private static void InitializeDependencyInjection([NotNull] string command, [NotNull] string[] args, [NotNull] LoggingLevelSwitch levelSwitch)
     {
         ServiceCollection services = new();
 
-        ConfigureServices(services);
+        ConfigureServices(services, command, args, levelSwitch);
 
         serviceProvider = services.BuildServiceProvider();
     }
@@ -132,12 +144,25 @@ internal static class Program
     /// <param name="services">
     /// The service collection used to register services.
     /// </param>
-    private static void ConfigureServices(IServiceCollection services)
+    /// <param name="command">
+    /// The command used to initialize the command provider.
+    /// </param>
+    /// <param name="args">
+    /// The command line arguments used to initialize the command provider.
+    /// </param>
+    /// <param name="levelSwitch">
+    /// The switch used to change the logging level of the logger after configuration.
+    /// </param>
+    private static void ConfigureServices([NotNull] IServiceCollection services, [NotNull] string command, [NotNull] string[] args, [NotNull] LoggingLevelSwitch levelSwitch)
     {
         services.AddSingleton<ISushiCompiler, SushiCompiler>();
         services.AddSingleton<ISushiLanguageServer, SushiLanguageServer>();
         services.AddSingleton<ISourceDocumentProvider, SushiSourceDocumentProvider>();
         services.AddSingleton<IDiagnosticReporterFactory, DiagnosticReporterFactory>();
+        services.AddSingleton<ICommandProvider, SushiCommandProvider>();
+        services.AddSingleton<IProjectSourceLoader, ProjectSourceLoader>();
+        services.AddTransient<ICommandContext, SushiCommandContext>(services
+            => ActivatorUtilities.CreateInstance<SushiCommandContext>(services, command, args, levelSwitch));
     }
     
     /// <summary>

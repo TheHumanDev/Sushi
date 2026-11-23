@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using OmniSharp.Extensions.LanguageServer.Server;
 using Serilog;
+using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 using Sushi.LanguageServer.Handlers;
@@ -13,7 +14,7 @@ using LSP = OmniSharp.Extensions.LanguageServer.Server.LanguageServer;
 namespace Sushi.LanguageServer;
 
 /// <inheritdoc cref="ISushiLanguageServer"/>
-public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider, IDiagnosticReporterFactory diagnosticReporterFactory) : ISushiLanguageServer
+public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider, IDiagnosticReporterFactory diagnosticReporterFactory, IProjectSourceLoader sourceLoader) : ISushiLanguageServer
 {
     /// <inheritdoc />
     public async Task Run(LSPTransportMethod transportMethod, IPEndPoint? listenEndpoint, string version)
@@ -97,7 +98,8 @@ public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider
     /// </returns>
     private async Task RunLanguageServer(Stream input, Stream output, string version)
     {
-        WorkspaceOrchestrator workspace = new(documentProvider, diagnosticReporterFactory);
+        WorkspaceProjectMembership projectMembership = new(sourceLoader);
+        WorkspaceOrchestrator workspace = new(documentProvider, diagnosticReporterFactory, projectMembership);
         using LSP server = await LSP.From(options => options
             .WithInput(input)
             .WithOutput(output)
@@ -114,6 +116,8 @@ public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider
                 services.AddSingleton(workspace);
                 services.AddSingleton(documentProvider);
                 services.AddSingleton(diagnosticReporterFactory);
+                services.AddSingleton(projectMembership);
+                services.AddSingleton(sourceLoader);
             })
             .WithHandler<WorkspaceFoldersHandler>()
             .WithHandler<WatchedFilesHandler>()

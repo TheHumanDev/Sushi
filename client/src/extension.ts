@@ -21,7 +21,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
-            { scheme: 'file', language: 'sushi' }
+            { scheme: 'file', language: 'sushi' },
+            { scheme: 'file', language: 'susproj' },
+			{ scheme: 'file', language: 'susln' }
         ]
     };
     
@@ -54,7 +56,7 @@ function createServerOptions(context: ExtensionContext): ServerOptions {
 
 	const executable: Executable = {
 		command,
-		args: ['-lsp', '-stdio']
+		args: ['lsp', '-stdio']
 	};
 
 	return {

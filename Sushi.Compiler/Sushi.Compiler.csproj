@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="11.0.0" />
+        <PackageReference Include="Tomlyn" Version="2.11.1" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Sushi.Core\Sushi.Core.csproj" />
+    </ItemGroup>
 </Project>

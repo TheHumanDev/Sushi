@@ -12,7 +12,14 @@ public sealed class DiagnosticReporter : IDiagnosticReporter
     private static readonly Dictionary<ErrorType, string> errorMessages = new()
     {
         [ErrorType.InvalidUtf8] = "Malformed UTF-8 source sequence.",   
-        [ErrorType.UnterminatedBlockComment] = "Unterminated block comment."
+        [ErrorType.UnterminatedBlockComment] = "Unterminated block comment.",
+        [ErrorType.TomlSyntaxError] = "Syntax error in Toml source.",
+        [ErrorType.TomlMissingRequiredKey] = "Required configuration key is missing.",
+        [ErrorType.TomlInvalidValueType] = "Configuration key has an invalid value type.",
+        [ErrorType.TomlEmptyProjectName] = "Required project name is empty.",
+        [ErrorType.TomlMissingBuildTargets] = "Project configuration must define at least one build target.",
+        [ErrorType.TomlUnknownDefaultBuildTarget] = "Default build target is not declared in \"build.targets\".",
+        [ErrorType.ExpectedSyntax] = "Syntax expected."
     };
 
     private static readonly Dictionary<WarningType, string> warningMessages = [];

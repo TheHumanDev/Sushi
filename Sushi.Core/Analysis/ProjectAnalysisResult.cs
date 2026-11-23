@@ -1,0 +1,14 @@
+﻿using Sushi.Core.Source;
+
+namespace Sushi.Core.Analysis;
+
+/// <summary>
+/// Represents the compiler project analysis produced for a specific source snapshot.
+/// </summary>
+/// <param name="Snapshot">
+/// The snapshot that was analyzed.
+/// </param>
+/// <param name="Project">
+/// The project definition produced by the analysis.
+/// </param>
+public record ProjectAnalysisResult(SourceSnapshot Snapshot, ProjectDefinition? Project) : AnalysisResult(Snapshot);

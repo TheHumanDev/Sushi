@@ -6,8 +6,8 @@ not all of which are known outside this specification. Furthermore,
 some terminology that is known is not known unilaterally across
 all developers. This section defines both types for elucidation.
 
-Linear
----------
+1.2.1 Linear
+-------------
 An object, resource, or type that is *linear* is defined as something
 that must be consumed exactly once. This is similar to *affine* types
 which can only be used at most once, but more restrictive as it cannot
