@@ -1,5 +1,4 @@
-﻿
-name: Publish Sushi VS Code Extension
+﻿name: Publish Sushi VS Code Extension
 
 on:
   workflow_dispatch:
@@ -11,7 +10,7 @@ concurrency:
 jobs:
   publish:
     name: Publish Windows x64 pre-release
-    if: github.ref == 'refs/heads/master'
+    if: github.ref_type == 'branch' && github.ref_name != 'master'
     runs-on: windows-latest
     environment: marketplace
 
@@ -22,8 +21,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
 
-      - name: Validate release metadata
+      - name: Validate release metadata and source
         shell: pwsh
         run: |
           $manifest = Get-Content package.json -Raw | ConvertFrom-Json
@@ -31,16 +32,21 @@ jobs:
           $version = [regex]::Match($properties, '<Version>\s*([^<]+)</Version>').Groups[1].Value
 
           if ($version -notmatch '^(?<base>\d+\.\d+\.\d+)-[0-9A-Za-z][0-9A-Za-z.-]*$') {
-              throw "Expected a prerelease version in Directory.Build.props, found '$version'."
+              throw "Expected a prerelease version, found '$version'."
           }
 
           $extensionVersion = $Matches['base']
+          $branch = $env:GITHUB_REF_NAME
+          $tag = "v$version"
 
-          if ($manifest.version -ne $extensionVersion) {
-              throw "Version mismatch: compiler '$version', extension '$($manifest.version)'."
+          if ($branch -ne $version) {
+              throw "Release branch '$branch' does not match version '$version'."
           }
 
-          $tag = "v$version"
+          if ($manifest.version -ne $extensionVersion) {
+              throw "Compiler and extension versions do not match."
+          }
+
           $notesPath = "release-notes/$tag.md"
 
           if (-not (Test-Path $notesPath -PathType Leaf)) {
@@ -49,6 +55,24 @@ jobs:
 
           if (-not (Test-Path CHANGELOG.md -PathType Leaf)) {
               throw "Marketplace changelog not found."
+          }
+
+          git fetch origin master
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to fetch master."
+          }
+
+          git merge-base --is-ancestor origin/master HEAD
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "The release branch does not contain the current master commit."
+          }
+
+          git diff --quiet origin/master HEAD
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Release branch contents differ from master."
           }
 
           $existingTag = git ls-remote --tags --refs origin "refs/tags/$tag"
@@ -61,9 +85,8 @@ jobs:
               throw "Release tag '$tag' already exists."
           }
 
-          Write-Host "Validated release $tag."
-          Write-Host "VS Code extension version: $extensionVersion"
-          Write-Host "Release notes: $notesPath"
+          Write-Host "Validated release $tag from branch $branch."
+          Write-Host "Source commit: $env:GITHUB_SHA"
 
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
