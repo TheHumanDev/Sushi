@@ -14,7 +14,8 @@ public sealed class SourceLexer : ILexer
 {
     private static readonly IReadOnlyList<ILexTokenizer> tokenizers = new ReadOnlyCollection<ILexTokenizer>
     ([
-        new CommentTokenizer()    
+        new CommentTokenizer(),
+        new WhitespaceTokenizer(),   
     ]);
 
     /// <inheritdoc />

@@ -8,5 +8,6 @@ public enum LexTokenType
     Unknown,
     Whitespace,
     LineComment,
-    BlockComment
+    BlockComment,
+    LineTerminator
 }
