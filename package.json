@@ -4,7 +4,7 @@
     "description": "Language support for the Sushi programming language.",
     "icon": "Sushi.png",
     "publisher": "TheHumanDev",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "repository": {
         "type": "git",
         "url": "git://github.com/TheHumanDev/Sushi"
@@ -24,6 +24,8 @@
         "Susproj.png",
         "Susln.png",
         "README.md",
+        "CHANGELOG.md",
+        "release-notes/v0.2.0-alpha.md",
         "LICENSE"
     ],
     "main": "./client/out/extension",

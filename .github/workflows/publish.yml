@@ -11,7 +11,7 @@ concurrency:
 jobs:
   publish:
     name: Publish Windows x64 pre-release
-    if: github.ref == 'refs/heads/v0.1.0-alpha'
+    if: github.ref == 'refs/heads/master'
     runs-on: windows-latest
     environment: marketplace
 
@@ -22,6 +22,48 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Validate release metadata
+        shell: pwsh
+        run: |
+          $manifest = Get-Content package.json -Raw | ConvertFrom-Json
+          $properties = Get-Content Directory.Build.props -Raw
+          $version = [regex]::Match($properties, '<Version>\s*([^<]+)</Version>').Groups[1].Value
+
+          if ($version -notmatch '^(?<base>\d+\.\d+\.\d+)-[0-9A-Za-z][0-9A-Za-z.-]*$') {
+              throw "Expected a prerelease version in Directory.Build.props, found '$version'."
+          }
+
+          $extensionVersion = $Matches['base']
+
+          if ($manifest.version -ne $extensionVersion) {
+              throw "Version mismatch: compiler '$version', extension '$($manifest.version)'."
+          }
+
+          $tag = "v$version"
+          $notesPath = "release-notes/$tag.md"
+
+          if (-not (Test-Path $notesPath -PathType Leaf)) {
+              throw "Release notes not found: $notesPath"
+          }
+
+          if (-not (Test-Path CHANGELOG.md -PathType Leaf)) {
+              throw "Marketplace changelog not found."
+          }
+
+          $existingTag = git ls-remote --tags --refs origin "refs/tags/$tag"
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Failed to check existing release tags."
+          }
+
+          if ($existingTag) {
+              throw "Release tag '$tag' already exists."
+          }
+
+          Write-Host "Validated release $tag."
+          Write-Host "VS Code extension version: $extensionVersion"
+          Write-Host "Release notes: $notesPath"
 
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -50,23 +92,31 @@ jobs:
       - name: Build VSIX
         run: npm run package:vsix
 
+      - name: Validate VSIX
+        shell: pwsh
+        run: |
+          $manifest = Get-Content package.json -Raw | ConvertFrom-Json
+          $packagePath = "vsix/$($manifest.name)-win32-x64-$($manifest.version).vsix"
+
+          if (-not (Test-Path $packagePath -PathType Leaf)) {
+              throw "VSIX not found: $packagePath"
+          }
+
       - name: Archive VSIX
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sushi-win32-x64
           path: vsix/*.vsix
           if-no-files-found: error
+
       - name: Publish to VS Code Marketplace
         shell: pwsh
         run: |
           $manifest = Get-Content package.json -Raw | ConvertFrom-Json
           $packagePath = "vsix/$($manifest.name)-win32-x64-$($manifest.version).vsix"
-              
-          if (-not (Test-Path $packagePath)) {
-              throw "VSIX not found: $packagePath"
-          }
-              
+
           npm exec -- vsce publish --oidc --packagePath $packagePath
+
   release:
     name: Publish GitHub Release
     needs: publish
@@ -96,6 +146,7 @@ jobs:
 
           $package = $packages[0]
           $hash = (Get-FileHash $package.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+
           "$hash  $($package.Name)" | Set-Content vsix/SHA256SUMS -Encoding ascii
 
       - name: Create GitHub Release
@@ -113,13 +164,13 @@ jobs:
 
           $tag = "v$version"
           $packagePath = "vsix/$($manifest.name)-win32-x64-$($manifest.version).vsix"
-          $notesPath = ".github/release-notes/$tag.md"
+          $notesPath = "release-notes/$tag.md"
 
-          if (-not (Test-Path $packagePath)) {
+          if (-not (Test-Path $packagePath -PathType Leaf)) {
               throw "VSIX not found: $packagePath"
           }
 
-          if (-not (Test-Path $notesPath)) {
+          if (-not (Test-Path $notesPath -PathType Leaf)) {
               throw "Release notes not found: $notesPath"
           }
 
