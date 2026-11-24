@@ -1,6 +1,6 @@
 ﻿using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Lexing.Tokenization;
+namespace Sushi.Core.Lexing.Tokenization;
 
 /// <summary>
 /// Represents a lexical token emitted by a lexer. Contains its type

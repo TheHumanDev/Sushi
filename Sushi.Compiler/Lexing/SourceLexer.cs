@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Lexing.Tokenization;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Lexing;
+using Sushi.Core.Lexing.Tokenization;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Lexing;

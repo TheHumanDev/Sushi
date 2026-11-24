@@ -1,8 +1,6 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Core.Analysis;
 using Sushi.Core.Configuration;
-using Sushi.Core.Source;
 
 namespace Sushi.LanguageServer.Workspace;
 

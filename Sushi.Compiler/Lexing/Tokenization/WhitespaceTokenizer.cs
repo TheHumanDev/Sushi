@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Sushi.Core.Lexing.Tokenization;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Lexing.Tokenization;

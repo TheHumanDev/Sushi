@@ -2,15 +2,17 @@
 using NUnit.Framework;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Sushi.Compiler.Analysis;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Compiler.Lexing;
 using Sushi.Compiler.Source;
 using Sushi.Core.Analysis;
 using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 using Sushi.LanguageServer.Workspace;
+using Sushi.Testing.Mocks;
 
 namespace Sushi.Testing.LanguageServer.Workspace;
 
@@ -22,6 +24,8 @@ public sealed class WorkspaceProjectMembershipTests
 
     private IDiagnosticReporterFactory diagnosticReporterFactory;
 
+    private IKeywordProvider keywordProvider;
+
     private WorkspaceOrchestrator orchestrator;
 
     private WorkspaceProjectMembership projectMembership;
@@ -29,7 +33,8 @@ public sealed class WorkspaceProjectMembershipTests
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
-        this.documentProvider = new SushiSourceDocumentProvider();
+        this.keywordProvider = new KeywordProvider();
+        this.documentProvider = new SushiSourceDocumentProvider(this.keywordProvider);
         this.sourceLoader = new ProjectSourceLoader(this.documentProvider);
         this.projectMembership = new WorkspaceProjectMembership(this.sourceLoader);
         this.diagnosticReporterFactory = new DiagnosticReporterFactory();
@@ -54,9 +59,9 @@ public sealed class WorkspaceProjectMembershipTests
 
             AnalysisResult[] analyses =
             [
-                new SourceAnalysisResult(CreateSnapshot(includedPath)),
-                new SourceAnalysisResult(CreateSnapshot(excludedPath)),
-                new SourceAnalysisResult(CreateSnapshot(standalonePath)),
+                new SourceAnalysisResult(CreateSnapshot(includedPath), new MockConcreteSyntaxTree()),
+                new SourceAnalysisResult(CreateSnapshot(excludedPath), new MockConcreteSyntaxTree()),
+                new SourceAnalysisResult(CreateSnapshot(standalonePath), new MockConcreteSyntaxTree()),
                 new ProjectAnalysisResult(projectSnapshot, CreateProject(["src/**/*.sus"], ["src/Generated/**"]))
             ];
 
@@ -99,7 +104,7 @@ public sealed class WorkspaceProjectMembershipTests
             [
                 new ProjectAnalysisResult(rootProject, CreateProject(["**/*.sus"], [])),
                 new ProjectAnalysisResult(nestedProject, CreateProject(["**/*.sus"], [])),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath))
+                new SourceAnalysisResult(CreateSnapshot(sourcePath), new MockConcreteSyntaxTree())
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
@@ -129,7 +134,7 @@ public sealed class WorkspaceProjectMembershipTests
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(projectSnapshot, null),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath))
+                new SourceAnalysisResult(CreateSnapshot(sourcePath), new MockConcreteSyntaxTree())
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);

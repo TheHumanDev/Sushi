@@ -1,4 +1,5 @@
-﻿using Sushi.Core.Source;
+﻿using Sushi.Core.Parsing.Syntax;
+using Sushi.Core.Source;
 
 namespace Sushi.Core.Analysis;
 
@@ -8,7 +9,10 @@ namespace Sushi.Core.Analysis;
 /// <param name="Snapshot">
 /// The snapshot that was analyzed.
 /// </param>
-public record SourceAnalysisResult(SourceSnapshot Snapshot) : AnalysisResult(Snapshot)
+/// <param name="SyntaxTree">
+/// The concrete syntax tree produced from the analyzed source.
+/// </param>
+public record SourceAnalysisResult(SourceSnapshot Snapshot, IConcreteSyntaxTree Tree) : AnalysisResult(Snapshot)
 {
     /// <summary>
     /// The project containing this source file when membership is unambiguous.
