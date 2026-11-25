@@ -83,7 +83,7 @@ public sealed class SourceFileSyntax : SyntaxNode
 
         this.Snapshot = snapshot;
         this.ActivityDeclarations = activities;
-        this.Declarations = declarations;
+        this.Declarations = new ReadOnlyCollection<SyntaxNode>([.. declarations]);
         this.UnparsedContentSpan = unparsedContentSpan;
     }
 
