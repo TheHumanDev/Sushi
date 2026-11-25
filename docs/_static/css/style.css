@@ -5,17 +5,11 @@ html.light .highlight .cm {
     color: #56A64A;
 }
 
-html.dark .highlight .k,
-html.light .highlight .k {
-    color: #AA0000;
-}
-
-html.dark .highlight .n,
-html.light .highlight .n {
-    color: #ffffb6;
-}
-
-html.dark .highlight .o,
-html.light .highlight .o {
-    color: #aa0000;
+/* Prevent long sidebar labels from overlapping their toggle buttons. */
+.globaltoc li:has(> ul) > a {
+    box-sizing: border-box;
+    width: 100%;
+    padding-right: 2.5rem;
+    white-space: normal;
+    overflow-wrap: break-word;
 }

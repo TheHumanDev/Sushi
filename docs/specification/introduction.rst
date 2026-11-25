@@ -4,9 +4,9 @@ This is the comprehensive and authoritative documentation for the Sushi Programm
 
 .. note::
     This document is meant to be the official, authoritative source for Sushi.
-    If the behavior of the compiler for this version of the docs does not match with this documentation,
-    visit our `Issues <https://github.com/TheHumanDev/Sushi/issues>`__ page so we can review and see
-    which one needs to change.
+    If the behavior of the compiler for this version of the docs does not match
+    with this documentation, visit our `Issues <https://github.com/TheHumanDev/Sushi/issues>`__
+    page so we can review and see which one needs to change.
 
 .. important::
     This document describes Sushi's intended language behavior. The compiler is
