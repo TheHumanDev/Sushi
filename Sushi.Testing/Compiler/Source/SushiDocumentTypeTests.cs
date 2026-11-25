@@ -1,12 +1,12 @@
 ﻿using AwesomeAssertions;
 using NUnit.Framework;
-using Sushi.Compiler.Analysis;
 using Sushi.Compiler.Source;
 using Sushi.Core.Analysis;
 using Sushi.Core.Source;
 using AwesomeAssertions.Execution;
 using Sushi.Core.Diagnostics;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Compiler.Lexing;
 
 namespace Sushi.Testing.Compiler.Source;
 
@@ -18,7 +18,7 @@ public sealed class SushiDocumentTypeTests
     [TestCase("susln", typeof(SushiSolutionDocumentType), true, true, TestName = "Sushi Solution Document Type Should Have Expected Metadata")]
     public void RegisteredDocumentTypesShouldHaveExpectedMetadata(string extension, Type expectedType, bool compilationRoot, bool invalidatesEntireCache)
     {
-        ISourceDocumentProvider provider = new SushiSourceDocumentProvider();
+        ISourceDocumentProvider provider = new SushiSourceDocumentProvider(new KeywordProvider());
 
         ISourceDocumentType documentType = provider.DocumentTypes.Single(type => type.Extension == extension);
 
@@ -44,7 +44,7 @@ public sealed class SushiDocumentTypeTests
     [TestCase(TestName = "Registered Document Extensions Must Be Unique")]
     public void RegisteredDocumentExtensionsMustBeUnique()
     {
-        ISourceDocumentProvider provider = new SushiSourceDocumentProvider();
+        ISourceDocumentProvider provider = new SushiSourceDocumentProvider(new KeywordProvider());
 
         IReadOnlyList<string> extensions = provider.RegisteredExtensions;
         int uniqueCount = extensions.Distinct(StringComparer.OrdinalIgnoreCase).Count();
@@ -209,7 +209,7 @@ public sealed class SushiDocumentTypeTests
 
     private static ISourceDocumentType GetDocumentType(string extension)
     {
-        ISourceDocumentProvider provider = new SushiSourceDocumentProvider();
+        ISourceDocumentProvider provider = new SushiSourceDocumentProvider(new KeywordProvider());
 
         return provider.DocumentTypes.Single(type => type.Extension.Equals(extension, StringComparison.OrdinalIgnoreCase));
     }

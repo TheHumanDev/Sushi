@@ -19,6 +19,17 @@ public interface ISourceDocumentProvider
     public IReadOnlyList<string> RegisteredExtensions => new ReadOnlyCollection<string>([.. this.DocumentTypes.Select(x => x.Extension)]);
 
     /// <summary>
+    /// Gets the language ID for the specified file extension.
+    /// </summary>
+    /// <param name="extension">
+    /// The extension (with or without the dot).
+    /// </param>
+    /// <returns>
+    /// The language ID if the extension corresponds to a supported language. Otherwise null.
+    /// </returns>
+    public string? GetLanguageIDFromExtension(string? extension);
+
+    /// <summary>
     /// Returns whether the specified path belongs to a source document, such as a .sus file.
     /// </summary>
     /// <param name="path">

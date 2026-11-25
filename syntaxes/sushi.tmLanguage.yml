@@ -5,6 +5,9 @@ fileTypes:
 
 patterns:
   - include: '#comments'
+  - include: '#activity-declaration'
+  - include: '#words'
+  - include: '#punctuation'
 
 repository:
   comments:
@@ -30,3 +33,42 @@ repository:
     name: comment.block.sus
     patterns:
       - include: '#block-comment'
+  activity-declaration:
+    match: '(?<![A-Za-z0-9_@])(activity)([ \t]+)(@?(?:[A-Za-z][A-Za-z0-9_]*|_+[A-Za-z0-9][A-Za-z0-9_]*))'
+    captures:
+      '1':
+        name: keyword.other.activity.sus
+      '3':
+        name: entity.name.type.activity.sus
+  words:
+    patterns:
+        - include: '#escaped-identifier'
+        - include: '#activity-keyword'
+        - include: '#modifier-keyword'
+        - include: '#identifier'
+  escaped-identifier:
+    match: |-
+      (?x)
+      @(?:activity|root|package|public|internal|protected|private)
+      (?![A-Za-z0-9_])
+    name: variable.other.readwrite.sus
+  activity-keyword:
+    patterns:
+      - match: '(?<![A-Za-z0-9_@])(?:root)(?![A-Za-z0-9_])'
+        name: storage.modifier.activity.sus
+      - match: '(?<![A-Za-z0-9_@])(?:activity)(?![A-Za-z0-9_])'
+        name: keyword.other.activity.sus
+  modifier-keyword:
+    match: '(?<![A-Za-z0-9_@])(?:public|internal|package|protected|private)(?![A-Za-z0-9_])'
+    name: storage.modifier.sus
+  identifier:
+    match: '(?<![A-Za-z0-9_@])(?:[A-Za-z][A-Za-z0-9_]*|_+[A-Za-z0-9][A-Za-z0-9_]*)'
+    name: variable.other.readwrite.sus
+  punctuation:
+    patterns:
+      - include: '#punctuation-accessor'
+      - match: '[{}]'
+        name: punctuation.section.block.sus
+  punctuation-accessor:
+    match: '\.'
+    name: punctuation.accessor.sus

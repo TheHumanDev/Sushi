@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Lexing;
+using Sushi.Compiler.Parsing;
 using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Analysis;
@@ -10,12 +12,14 @@ namespace Sushi.Compiler.Analysis;
 /// <summary>
 /// Performs analysis of Sushi source snapshots.
 /// </summary>
-public sealed class SourceAnalyzer : Analyzer
+public sealed class SourceAnalyzer([NotNull] IKeywordProvider keywordProvider) : Analyzer
 {
     /// <summary>
     /// The lexer used to lex the source snapshot.
     /// </summary>
-    private readonly SourceLexer lexer = new();
+    private readonly SourceLexer lexer = new(keywordProvider);
+
+    private readonly SourceParser parser = new();
 
     /// <inheritdoc />
     public override async Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
@@ -32,9 +36,16 @@ public sealed class SourceAnalyzer : Analyzer
         LexResult lexerResult = await this.lexer.Lex(snapshot, localDiagnostics, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
+        ParserCursor cursor = new(lexerResult, keywordProvider, cancellationToken);
+
+        ParsingContext context = new(lexerResult, cursor, keywordProvider);
+
+        ParserResult parserResult = await this.parser.Parse(context, localDiagnostics, cancellationToken); 
+        cancellationToken.ThrowIfCancellationRequested();
+
         diagnosticReporter.CommitReporter(localDiagnostics);
 
-        SourceAnalysisResult result = new(snapshot);
+        SourceAnalysisResult result = new(snapshot, parserResult.Tree);
 
         return result;
     }

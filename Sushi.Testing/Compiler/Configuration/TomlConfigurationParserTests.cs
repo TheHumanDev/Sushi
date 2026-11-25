@@ -1,5 +1,4 @@
-﻿
-using System.Text;
+﻿using System.Text;
 using AwesomeAssertions;
 using NUnit.Framework;
 using Sushi.Compiler.Configuration;

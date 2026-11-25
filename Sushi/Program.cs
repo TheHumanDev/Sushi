@@ -10,9 +10,11 @@ using Sushi.Commands;
 using Sushi.Compiler;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Compiler.Lexing;
 using Sushi.Compiler.Source;
 using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 using Sushi.Diagnostics;
 using Sushi.Diagnostics.Exceptions;
@@ -161,6 +163,7 @@ internal static class Program
         services.AddSingleton<IDiagnosticReporterFactory, DiagnosticReporterFactory>();
         services.AddSingleton<ICommandProvider, SushiCommandProvider>();
         services.AddSingleton<IProjectSourceLoader, ProjectSourceLoader>();
+        services.AddSingleton<IKeywordProvider, KeywordProvider>();
         services.AddTransient<ICommandContext, SushiCommandContext>(services
             => ActivatorUtilities.CreateInstance<SushiCommandContext>(services, command, args, levelSwitch));
     }

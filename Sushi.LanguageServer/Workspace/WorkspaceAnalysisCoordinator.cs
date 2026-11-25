@@ -18,6 +18,11 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
     private static readonly TimeSpan fileSystemAnalysisDebounce = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
+    /// The debounce time for editor analysis.
+    /// </summary>
+    private static readonly TimeSpan editorAnalysisDebounce = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>
     /// The workspace orchestrator that owns this coordinator.
     /// </summary>
     private readonly WorkspaceOrchestrator orchestrator;
@@ -160,6 +165,15 @@ internal sealed class WorkspaceAnalysisCoordinator : IDisposable
     /// </param>
     internal void ScheduleFileSystemAnalysis(IEnumerable<Uri> affectedUris)
         => this.ScheduleWorkspaceAnalysis(fileSystemAnalysisDebounce, affectedUris);
+
+    /// <summary>
+    /// Schedules a debounced analysis after editor changes.
+    /// </summary>
+    /// <param name="affectedUris">
+    /// The documents affected by the editor notification.
+    /// </param>
+    internal void ScheduleEditorAnalysis(IEnumerable<Uri> affectedUris)
+        => this.ScheduleWorkspaceAnalysis(editorAnalysisDebounce, affectedUris);
 
     /// <summary>
     /// Replaces pending analysis with a new scheduled attempt while retaining

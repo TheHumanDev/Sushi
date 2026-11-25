@@ -1,4 +1,4 @@
-﻿namespace Sushi.Compiler.Lexing.Tokenization;
+﻿namespace Sushi.Core.Lexing.Tokenization;
 
 /// <summary>
 /// Represents the type of a <see cref="LexToken"/>, which determines its meaning.
@@ -8,5 +8,10 @@ public enum LexTokenType
     Unknown,
     Whitespace,
     LineComment,
-    BlockComment
+    BlockComment,
+    LineTerminator,
+    Keyword,
+    Identifier,
+    EscapedIdentifier,
+    Punctuation
 }

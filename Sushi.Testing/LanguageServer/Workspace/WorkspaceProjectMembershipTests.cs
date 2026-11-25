@@ -2,15 +2,17 @@
 using NUnit.Framework;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Sushi.Compiler.Analysis;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Compiler.Lexing;
 using Sushi.Compiler.Source;
 using Sushi.Core.Analysis;
 using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 using Sushi.LanguageServer.Workspace;
+using Sushi.Testing.Mocks;
 
 namespace Sushi.Testing.LanguageServer.Workspace;
 
@@ -22,6 +24,8 @@ public sealed class WorkspaceProjectMembershipTests
 
     private IDiagnosticReporterFactory diagnosticReporterFactory;
 
+    private IKeywordProvider keywordProvider;
+
     private WorkspaceOrchestrator orchestrator;
 
     private WorkspaceProjectMembership projectMembership;
@@ -29,7 +33,8 @@ public sealed class WorkspaceProjectMembershipTests
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
-        this.documentProvider = new SushiSourceDocumentProvider();
+        this.keywordProvider = new KeywordProvider();
+        this.documentProvider = new SushiSourceDocumentProvider(this.keywordProvider);
         this.sourceLoader = new ProjectSourceLoader(this.documentProvider);
         this.projectMembership = new WorkspaceProjectMembership(this.sourceLoader);
         this.diagnosticReporterFactory = new DiagnosticReporterFactory();
@@ -51,12 +56,15 @@ public sealed class WorkspaceProjectMembershipTests
             string standalonePath = CreateFile(directory, "outside/Standalone.sus", "");
 
             SourceSnapshot projectSnapshot = CreateSnapshot(CreateFile(directory, ".susproj", ""));
+            SourceSnapshot includedSnapshot = CreateSnapshot(includedPath);
+            SourceSnapshot excludedSnapshot = CreateSnapshot(excludedPath);
+            SourceSnapshot standaloneSnapshot = CreateSnapshot(standalonePath);
 
             AnalysisResult[] analyses =
             [
-                new SourceAnalysisResult(CreateSnapshot(includedPath)),
-                new SourceAnalysisResult(CreateSnapshot(excludedPath)),
-                new SourceAnalysisResult(CreateSnapshot(standalonePath)),
+                new SourceAnalysisResult(includedSnapshot, MockConcreteSyntaxTree.FromSnapshot(includedSnapshot)),
+                new SourceAnalysisResult(excludedSnapshot, MockConcreteSyntaxTree.FromSnapshot(excludedSnapshot)),
+                new SourceAnalysisResult(standaloneSnapshot, MockConcreteSyntaxTree.FromSnapshot(standaloneSnapshot)),
                 new ProjectAnalysisResult(projectSnapshot, CreateProject(["src/**/*.sus"], ["src/Generated/**"]))
             ];
 
@@ -94,12 +102,12 @@ public sealed class WorkspaceProjectMembershipTests
             string sourcePath = CreateFile(directory, "sub/Shared.sus", "");
             SourceSnapshot rootProject = CreateSnapshot(CreateFile(directory, ".susproj", ""));
             SourceSnapshot nestedProject = CreateSnapshot(CreateFile(directory, "sub/.susproj", ""));
-
+            SourceSnapshot sourceAnalysisSnapshot = CreateSnapshot(sourcePath);
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(rootProject, CreateProject(["**/*.sus"], [])),
                 new ProjectAnalysisResult(nestedProject, CreateProject(["**/*.sus"], [])),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath))
+                new SourceAnalysisResult(sourceAnalysisSnapshot, MockConcreteSyntaxTree.FromSnapshot(sourceAnalysisSnapshot))
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
@@ -125,11 +133,12 @@ public sealed class WorkspaceProjectMembershipTests
         {
             string sourcePath = CreateFile(directory, "Main.sus", "");
             SourceSnapshot projectSnapshot = CreateSnapshot(CreateFile(directory, ".susproj", ""));
+            SourceSnapshot sourceSnapshot = CreateSnapshot(sourcePath);
 
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(projectSnapshot, null),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath))
+                new SourceAnalysisResult(sourceSnapshot, MockConcreteSyntaxTree.FromSnapshot(sourceSnapshot))
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
