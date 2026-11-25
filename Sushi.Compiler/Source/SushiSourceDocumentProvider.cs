@@ -29,6 +29,7 @@ public sealed class SushiSourceDocumentProvider([NotNull] IKeywordProvider keywo
         }
 
         string normalizedExtension = extension.Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
-        return this.DocumentTypes.FirstOrDefault(doc => doc.Extension == normalizedExtension)?.LanguageID;
+
+        return this.DocumentTypes.FirstOrDefault(doc => doc.Extension.Equals( normalizedExtension, StringComparison.OrdinalIgnoreCase))?.LanguageID;
     }
 }
