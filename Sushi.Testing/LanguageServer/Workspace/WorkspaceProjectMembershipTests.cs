@@ -59,9 +59,9 @@ public sealed class WorkspaceProjectMembershipTests
 
             AnalysisResult[] analyses =
             [
-                new SourceAnalysisResult(CreateSnapshot(includedPath), new MockConcreteSyntaxTree()),
-                new SourceAnalysisResult(CreateSnapshot(excludedPath), new MockConcreteSyntaxTree()),
-                new SourceAnalysisResult(CreateSnapshot(standalonePath), new MockConcreteSyntaxTree()),
+                new SourceAnalysisResult(CreateSnapshot(includedPath), MockConcreteSyntaxTree.FromEmpty()),
+                new SourceAnalysisResult(CreateSnapshot(excludedPath), MockConcreteSyntaxTree.FromEmpty()),
+                new SourceAnalysisResult(CreateSnapshot(standalonePath), MockConcreteSyntaxTree.FromEmpty()),
                 new ProjectAnalysisResult(projectSnapshot, CreateProject(["src/**/*.sus"], ["src/Generated/**"]))
             ];
 
@@ -104,7 +104,7 @@ public sealed class WorkspaceProjectMembershipTests
             [
                 new ProjectAnalysisResult(rootProject, CreateProject(["**/*.sus"], [])),
                 new ProjectAnalysisResult(nestedProject, CreateProject(["**/*.sus"], [])),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath), new MockConcreteSyntaxTree())
+                new SourceAnalysisResult(CreateSnapshot(sourcePath), MockConcreteSyntaxTree.FromEmpty())
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
@@ -134,7 +134,7 @@ public sealed class WorkspaceProjectMembershipTests
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(projectSnapshot, null),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath), new MockConcreteSyntaxTree())
+                new SourceAnalysisResult(CreateSnapshot(sourcePath), MockConcreteSyntaxTree.FromEmpty())
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
