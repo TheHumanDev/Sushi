@@ -16,6 +16,7 @@ public sealed class KeywordProvider : IKeywordProvider
     public IReadOnlyList<Keyword> Keywords { get; } = new ReadOnlyCollection<Keyword>
     ([
         new("activity", KeywordType.Keyword),
+        new("root", KeywordType.Keyword),
         new("public", KeywordType.AccessModifier),
         new("internal", KeywordType.AccessModifier),
         new("package", KeywordType.AccessModifier),
