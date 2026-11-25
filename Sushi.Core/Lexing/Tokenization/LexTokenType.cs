@@ -10,5 +10,7 @@ public enum LexTokenType
     LineComment,
     BlockComment,
     LineTerminator,
-    Keyword
+    Keyword,
+    Identifier,
+    EscapedIdentifier
 }

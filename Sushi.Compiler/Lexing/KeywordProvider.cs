@@ -81,4 +81,18 @@ public sealed class KeywordProvider : IKeywordProvider
 
         return false;
     }
+
+    /// <inheritdoc />
+    public bool IsReservedKeyword(ReadOnlySpan<byte> spelling)
+    {
+        foreach (Keyword candidate in this.Keywords)
+        {
+            if (candidate.Bytes.SequenceEqual(spelling))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -12,12 +12,16 @@ namespace Sushi.Compiler.Lexing;
 /// <summary>
 /// Performs lexical analysis of Sushi source text.
 /// </summary>
-public sealed class SourceLexer : ILexer
+/// <param name="keywordProvider">
+/// The keyword provider used to discover registered keywords.
+/// </param>
+public sealed class SourceLexer([NotNull] IKeywordProvider keywordProvider) : ILexer
 {
-    private static readonly IReadOnlyList<ILexTokenizer> tokenizers = new ReadOnlyCollection<ILexTokenizer>
+    private readonly IReadOnlyList<ILexTokenizer> tokenizers = new ReadOnlyCollection<ILexTokenizer>
     ([
         new CommentTokenizer(),
-        new WhitespaceTokenizer(),   
+        new WhitespaceTokenizer(),
+        new WordTokenizer(keywordProvider)
     ]);
 
     /// <inheritdoc />
@@ -45,14 +49,14 @@ public sealed class SourceLexer : ILexer
                 continue;
             }
 
-            if (TryGetBestMatch(snapshot, position, cancellationToken, out LexTokenMatch match))
+            if (this.TryGetBestMatch(snapshot, position, cancellationToken, out LexTokenMatch match))
             {
                 position = CommitMatch(snapshot, position, match, tokens, localDiagnostics, ref encodingIssueIndex);
 
                 continue;
             }
 
-            int unknownEnd = FindUnknownEnd(snapshot, position, encodingIssueIndex, cancellationToken);
+            int unknownEnd = this.FindUnknownEnd(snapshot, position, encodingIssueIndex, cancellationToken);
 
             tokens.Add(new LexToken(LexTokenType.Unknown, new SourceSpan(snapshot, position, unknownEnd)));
             position = unknownEnd;
@@ -81,14 +85,14 @@ public sealed class SourceLexer : ILexer
     /// <returns>
     /// True if a tokenizer recognizes a lexical element at the specified position. False otherwise.
     /// </returns>
-    private static bool TryGetBestMatch(SourceSnapshot snapshot, int position, CancellationToken cancellationToken, out LexTokenMatch match)
+    private bool TryGetBestMatch(SourceSnapshot snapshot, int position, CancellationToken cancellationToken, out LexTokenMatch match)
     {
         ReadOnlySpan<byte> bytes = snapshot.Bytes.Span;
 
         bool found = false;
         match = default;
 
-        foreach (ILexTokenizer tokenizer in tokenizers)
+        foreach (ILexTokenizer tokenizer in this.tokenizers)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -206,7 +210,7 @@ public sealed class SourceLexer : ILexer
     /// The exclusive byte position at which normal lexical recognition
     /// or encoding recovery begins, or the end of the source.
     /// </returns>
-    private static int FindUnknownEnd(SourceSnapshot snapshot, int position, int encodingIssueIndex, CancellationToken cancellationToken)
+    private int FindUnknownEnd(SourceSnapshot snapshot, int position, int encodingIssueIndex, CancellationToken cancellationToken)
     {
         int encodingBoundary = encodingIssueIndex < snapshot.EncodingIssues.Count
             ? snapshot.EncodingIssues[encodingIssueIndex].Start
@@ -218,7 +222,7 @@ public sealed class SourceLexer : ILexer
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (TryGetBestMatch(snapshot, end, cancellationToken, out _))
+            if (this.TryGetBestMatch(snapshot, end, cancellationToken, out _))
             {
                 break;
             }

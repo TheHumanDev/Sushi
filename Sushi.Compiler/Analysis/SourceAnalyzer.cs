@@ -17,7 +17,7 @@ public sealed class SourceAnalyzer([NotNull] IKeywordProvider keywordProvider) :
     /// <summary>
     /// The lexer used to lex the source snapshot.
     /// </summary>
-    private readonly SourceLexer lexer = new();
+    private readonly SourceLexer lexer = new(keywordProvider);
 
     private readonly SourceParser parser = new();
 

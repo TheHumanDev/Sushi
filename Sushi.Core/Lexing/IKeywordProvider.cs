@@ -42,4 +42,15 @@ public interface IKeywordProvider
     /// True if the token is a built-in type. False otherwise.
     /// </returns>
     public bool IsBuiltInType(LexToken token, [NotNull] SourceSnapshot snapshot);
+
+    /// <summary>
+    /// Returns whether the specified spelling is a keyword reserved by the provider.
+    /// </summary>
+    /// <param name="spelling">
+    /// The complete source spelling.
+    /// </param>
+    /// <returns>
+    /// True if the keyword is a reserved keyword. False otherwise.
+    /// </returns>
+    public bool IsReservedKeyword(ReadOnlySpan<byte> spelling);
 }
