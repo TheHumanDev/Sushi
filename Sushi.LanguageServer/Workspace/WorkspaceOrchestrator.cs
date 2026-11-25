@@ -343,7 +343,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
 
                 if (item is null || !item.Document.TryUpdateAnalysis(analysis, diagnosticReporter))
                 {
-                    continue;  
+                    continue;
                 }
 
                 this.PublishDiagnostics(analysis, diagnosticReporter.ReportDiagnostics());
@@ -414,7 +414,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
             this.folders.AddRange(workspaceFolders);
         }
     }
-    
+
     /// <summary>
     /// Applies watched-file notifications and schedules analysis when
     /// an authoritative workspace change is detected.
@@ -499,19 +499,20 @@ public sealed class WorkspaceOrchestrator : IDisposable
     }
 
     /// <summary>
-    /// Opens the specified document and publishes diagnostics for it.
+    /// Opens the specified document and analyzes its editor contents.
+    /// Documents that have not yet been saved are initialized with an empty disk snapshot.
     /// </summary>
     /// <param name="documentUri">
     /// The <see cref="Uri"/> of the document being opened.
     /// </param>
     /// <param name="version">
-    /// The version number of the update request used for concurrency.
+    /// The editor document version used to reject stale updates.
     /// </param>
     /// <param name="text">
-    /// The text of the document so that it can be changed.
+    /// The current contents supplied by the editor.
     /// </param>
     /// <param name="cancellationToken">
-    /// The cancellation token used to cancel analysis.
+    /// Cancels document loading and analysis.
     /// </param>
     /// <returns>
     /// An awaitable <see cref="Task"/>.
@@ -519,18 +520,28 @@ public sealed class WorkspaceOrchestrator : IDisposable
     public async Task OpenDocument([NotNull] Uri documentUri, int? version, string text, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(documentUri);
+        ArgumentNullException.ThrowIfNull(text);
 
-        SourceDocument document;
-        SourceSnapshot editorSnapshot;
+        SourceSnapshot editorSnapshot = SourceSnapshot.FromText(documentUri, version, text);
 
         await this.mutationGate.WaitAsync(cancellationToken);
 
         try
         {
-         
+            SourceDocument document;
+
             if (!this.workspace.TryGetDocument(documentUri, out SourceDocument? existing))
             {
-                SourceSnapshot diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
+                SourceSnapshot diskSnapshot;
+
+                try
+                {
+                    diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
+                }
+                catch (IOException exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
+                {
+                    diskSnapshot = SourceSnapshot.FromText(documentUri, version: null, text: string.Empty);
+                }
 
                 document = this.workspace.GetOrAddDocument(documentUri, diskSnapshot);
             }
@@ -539,9 +550,8 @@ public sealed class WorkspaceOrchestrator : IDisposable
                 document = existing;
             }
 
-            editorSnapshot = SourceSnapshot.FromText(documentUri, version, text);
-
             document.UpdateEditor(editorSnapshot);
+
             if (!document.IsCurrent(editorSnapshot))
             {
                 return;
@@ -623,7 +633,7 @@ public sealed class WorkspaceOrchestrator : IDisposable
         {
             document = this.workspace.GetDocument(documentUri);
             SourceSnapshot diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
-            
+
             document.UpdateDisk(diskSnapshot);
 
             this.AdvanceWorkspaceGeneration();
