@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Sushi.Compiler.Parsing.Syntax;
 using Sushi.Core.Lexing;
 using Sushi.Core.Parsing.Syntax;
 using Sushi.Core.Source;
@@ -16,7 +17,7 @@ public sealed class MockConcreteSyntaxTree(LexResult lexResult, SyntaxNode root,
     public static MockConcreteSyntaxTree FromSnapshot(SourceSnapshot snapshot)
     {
         LexResult result = new(snapshot, []);
-        SyntaxNode root = new MockSyntaxNode();
+        SourceFileSyntax root = new(snapshot, [], null);
         return new(result, root, snapshot);
     }
 }

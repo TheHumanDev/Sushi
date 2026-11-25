@@ -56,12 +56,15 @@ public sealed class WorkspaceProjectMembershipTests
             string standalonePath = CreateFile(directory, "outside/Standalone.sus", "");
 
             SourceSnapshot projectSnapshot = CreateSnapshot(CreateFile(directory, ".susproj", ""));
+            SourceSnapshot includedSnapshot = CreateSnapshot(includedPath);
+            SourceSnapshot excludedSnapshot = CreateSnapshot(excludedPath);
+            SourceSnapshot standaloneSnapshot = CreateSnapshot(standalonePath);
 
             AnalysisResult[] analyses =
             [
-                new SourceAnalysisResult(CreateSnapshot(includedPath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot)),
-                new SourceAnalysisResult(CreateSnapshot(excludedPath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot)),
-                new SourceAnalysisResult(CreateSnapshot(standalonePath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot)),
+                new SourceAnalysisResult(includedSnapshot, MockConcreteSyntaxTree.FromSnapshot(includedSnapshot)),
+                new SourceAnalysisResult(excludedSnapshot, MockConcreteSyntaxTree.FromSnapshot(excludedSnapshot)),
+                new SourceAnalysisResult(standaloneSnapshot, MockConcreteSyntaxTree.FromSnapshot(standaloneSnapshot)),
                 new ProjectAnalysisResult(projectSnapshot, CreateProject(["src/**/*.sus"], ["src/Generated/**"]))
             ];
 
@@ -130,11 +133,12 @@ public sealed class WorkspaceProjectMembershipTests
         {
             string sourcePath = CreateFile(directory, "Main.sus", "");
             SourceSnapshot projectSnapshot = CreateSnapshot(CreateFile(directory, ".susproj", ""));
+            SourceSnapshot sourceSnapshot = CreateSnapshot(sourcePath);
 
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(projectSnapshot, null),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot))
+                new SourceAnalysisResult(sourceSnapshot, MockConcreteSyntaxTree.FromSnapshot(sourceSnapshot))
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
