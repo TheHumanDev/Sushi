@@ -499,6 +499,205 @@ public sealed class WorkspaceOrchestrator : IDisposable
     }
 
     /// <summary>
+    /// Opens the specified document and publishes diagnostics for it.
+    /// </summary>
+    /// <param name="documentUri">
+    /// The <see cref="Uri"/> of the document being opened.
+    /// </param>
+    /// <param name="version">
+    /// The version number of the update request used for concurrency.
+    /// </param>
+    /// <param name="text">
+    /// The text of the document so that it can be changed.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token used to cancel analysis.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task"/>.
+    /// </returns>
+    public async Task OpenDocument([NotNull] Uri documentUri, int? version, string text, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(documentUri);
+
+        SourceDocument document;
+        SourceSnapshot editorSnapshot;
+
+        await this.mutationGate.WaitAsync(cancellationToken);
+
+        try
+        {
+         
+            if (!this.workspace.TryGetDocument(documentUri, out SourceDocument? existing))
+            {
+                SourceSnapshot diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
+
+                document = this.workspace.GetOrAddDocument(documentUri, diskSnapshot);
+            }
+            else
+            {
+                document = existing;
+            }
+
+            editorSnapshot = SourceSnapshot.FromText(documentUri, version, text);
+
+            document.UpdateEditor(editorSnapshot);
+            if (!document.IsCurrent(editorSnapshot))
+            {
+                return;
+            }
+
+            this.AdvanceWorkspaceGeneration();
+            this.coordinator.CancelScheduledAnalysis();
+        }
+        finally
+        {
+            this.mutationGate.Release();
+        }
+
+        await this.coordinator.AnalyzeWorkspace(cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates the specified document and publishes diagnostics for it.
+    /// </summary>
+    /// <param name="documentUri">
+    /// The <see cref="Uri"/> of the document to update.
+    /// </param>
+    /// <param name="version">
+    /// The version number of the update request used for concurrency.
+    /// </param>
+    /// <param name="text">
+    /// The text of the document so that it can be changed.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token used to cance.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task"/>.
+    /// </returns>
+    public async Task ChangeDocument([NotNull] Uri documentUri, int? version, string text, CancellationToken cancellationToken)
+    {
+        SourceDocument document;
+        SourceSnapshot snapshot = SourceSnapshot.FromText(documentUri, version, text);
+
+        await this.mutationGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            document = this.workspace.GetDocument(documentUri);
+            document.UpdateEditor(snapshot);
+            if (!document.IsCurrent(snapshot))
+            {
+                return;
+            }
+
+            this.AdvanceWorkspaceGeneration();
+            this.coordinator.ScheduleEditorAnalysis([documentUri]);
+        }
+        finally
+        {
+            this.mutationGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Saves the specified document and publishes diagnostics for it.
+    /// </summary>
+    /// <param name="documentUri">
+    /// The <see cref="Uri"/> of the document to save.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token used to cancel loading of the disk snapshot.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task"/>.
+    /// </returns>
+    public async Task SaveDocument([NotNull] Uri documentUri, CancellationToken cancellationToken)
+    {
+        SourceDocument document;
+
+        await this.mutationGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            document = this.workspace.GetDocument(documentUri);
+            SourceSnapshot diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
+            
+            document.UpdateDisk(diskSnapshot);
+
+            this.AdvanceWorkspaceGeneration();
+            this.coordinator.CancelScheduledAnalysis();
+        }
+        finally
+        {
+            this.mutationGate.Release();
+        }
+
+        await this.coordinator.AnalyzeWorkspace(cancellationToken);
+    }
+
+    /// <summary>
+    /// Closes the specified document.
+    /// </summary>
+    /// <param name="documentUri">
+    /// The <see cref="Uri"/> of the document to close.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to loading of the disk snapshot.
+    /// </param>
+    /// <returns>
+    /// An awaitable <see cref="Task" />.
+    /// </returns>
+    public async Task CloseDocument([NotNull] Uri documentUri, CancellationToken cancellationToken)
+    {
+        SourceDocument? document = null;
+        SourceSnapshot? snapshot = null;
+
+        bool removed = false;
+
+        await this.mutationGate.WaitAsync(cancellationToken);
+
+        try
+        {
+            document = this.workspace.GetDocument(documentUri);
+
+            this.coordinator.CancelScheduledAnalysis();
+
+            if (!File.Exists(documentUri.LocalPath))
+            {
+                this.workspace.RemoveDocument(documentUri);
+
+                this.ClearDiagnostics(documentUri);
+
+                removed = true;
+            }
+            else
+            {
+                SourceSnapshot diskSnapshot = await LoadDiskSnapshot(documentUri, cancellationToken);
+
+                document.Close(diskSnapshot);
+
+                snapshot = document.CurrentSnapshot;
+            }
+
+            this.AdvanceWorkspaceGeneration();
+        }
+        finally
+        {
+            this.mutationGate.Release();
+        }
+
+        if (!removed)
+        {
+            ArgumentNullException.ThrowIfNull(document);
+            ArgumentNullException.ThrowIfNull(snapshot);
+        }
+
+        await this.coordinator.AnalyzeWorkspace(cancellationToken);
+    }
+
+    /// <summary>
     /// Refreshes an existing disk document or adds a newly discovered document.
     /// </summary>
     /// <param name="documentUri">

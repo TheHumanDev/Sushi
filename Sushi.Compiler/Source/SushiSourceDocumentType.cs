@@ -30,6 +30,9 @@ public sealed class SushiSourceDocumentType([NotNull] IKeywordProvider keywordPr
     public bool IsSourceDocument => true;
 
     /// <inheritdoc />
+    public string LanguageID => "sushi";
+
+    /// <inheritdoc />
     public Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
         => this.analyzer.Analyze(snapshot, diagnosticReporter, cancellationToken);
 }

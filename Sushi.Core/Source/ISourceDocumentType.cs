@@ -32,6 +32,11 @@ public interface ISourceDocumentType
     /// If true, this document is considered a source code document.
     /// </summary>
     public bool IsSourceDocument { get; }
+    
+    /// <summary>
+    /// The ID of the language that this document type is associated with.
+    /// </summary>
+    public string LanguageID { get; }
 
     /// <summary>
     /// Analyzes a source snapshot.

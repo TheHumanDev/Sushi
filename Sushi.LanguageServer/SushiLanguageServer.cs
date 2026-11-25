@@ -121,6 +121,7 @@ public sealed class SushiLanguageServer(ISourceDocumentProvider documentProvider
             })
             .WithHandler<WorkspaceFoldersHandler>()
             .WithHandler<WatchedFilesHandler>()
+            .WithHandler<TextDocumentSyncHandler>()
         );
 
         try

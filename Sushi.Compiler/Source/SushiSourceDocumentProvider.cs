@@ -19,4 +19,16 @@ public sealed class SushiSourceDocumentProvider([NotNull] IKeywordProvider keywo
        new SushiProjectDocumentType(),
        new SushiSolutionDocumentType()
     ]);
+
+    /// <inheritdoc />
+    public string? GetLanguageIDFromExtension(string? extension)
+    {
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            return null;
+        }
+
+        string normalizedExtension = extension.Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
+        return this.DocumentTypes.FirstOrDefault(doc => doc.Extension == extension)?.LanguageID;
+    }
 }

@@ -23,6 +23,9 @@ public sealed class SushiProjectDocumentType : ISourceDocumentType
     public bool IsSourceDocument => false;
 
     /// <inheritdoc />
+    public string LanguageID => "susproj";
+
+    /// <inheritdoc />
     public Task<AnalysisResult> Analyze([NotNull] SourceSnapshot snapshot, [NotNull] IDiagnosticReporter diagnosticReporter, CancellationToken cancellationToken)
         => this.analyzer.Analyze(snapshot, diagnosticReporter, cancellationToken);
 }
