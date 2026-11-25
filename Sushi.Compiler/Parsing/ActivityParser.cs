@@ -21,9 +21,12 @@ public sealed class ActivityParser(IKeywordProvider keywordProvider) : IParser<A
             return false;
         }
 
-        return (context.Cursor.TryPeek(out LexToken next, lookahead: 1)
-            && next.Type is LexTokenType.Keyword
-            && context.Cursor.TokenTextEquals(next, "root"u8)) || context.Cursor.TokenTextEquals(next, "activity"u8);
+        if (!context.Cursor.TryPeek(out LexToken next, lookahead: 1) || next.Type is not LexTokenType.Keyword)
+        {
+            return false;
+        }
+
+        return context.Cursor.TokenTextEquals(next, "root"u8) || context.Cursor.TokenTextEquals(next, "activity"u8);
     }
 
     /// <inheritdoc />
