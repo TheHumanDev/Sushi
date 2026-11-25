@@ -59,9 +59,9 @@ public sealed class WorkspaceProjectMembershipTests
 
             AnalysisResult[] analyses =
             [
-                new SourceAnalysisResult(CreateSnapshot(includedPath), MockConcreteSyntaxTree.FromEmpty()),
-                new SourceAnalysisResult(CreateSnapshot(excludedPath), MockConcreteSyntaxTree.FromEmpty()),
-                new SourceAnalysisResult(CreateSnapshot(standalonePath), MockConcreteSyntaxTree.FromEmpty()),
+                new SourceAnalysisResult(CreateSnapshot(includedPath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot)),
+                new SourceAnalysisResult(CreateSnapshot(excludedPath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot)),
+                new SourceAnalysisResult(CreateSnapshot(standalonePath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot)),
                 new ProjectAnalysisResult(projectSnapshot, CreateProject(["src/**/*.sus"], ["src/Generated/**"]))
             ];
 
@@ -99,12 +99,12 @@ public sealed class WorkspaceProjectMembershipTests
             string sourcePath = CreateFile(directory, "sub/Shared.sus", "");
             SourceSnapshot rootProject = CreateSnapshot(CreateFile(directory, ".susproj", ""));
             SourceSnapshot nestedProject = CreateSnapshot(CreateFile(directory, "sub/.susproj", ""));
-
+            SourceSnapshot sourceAnalysisSnapshot = CreateSnapshot(sourcePath);
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(rootProject, CreateProject(["**/*.sus"], [])),
                 new ProjectAnalysisResult(nestedProject, CreateProject(["**/*.sus"], [])),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath), MockConcreteSyntaxTree.FromEmpty())
+                new SourceAnalysisResult(sourceAnalysisSnapshot, MockConcreteSyntaxTree.FromSnapshot(sourceAnalysisSnapshot))
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);
@@ -134,7 +134,7 @@ public sealed class WorkspaceProjectMembershipTests
             AnalysisResult[] analyses =
             [
                 new ProjectAnalysisResult(projectSnapshot, null),
-                new SourceAnalysisResult(CreateSnapshot(sourcePath), MockConcreteSyntaxTree.FromEmpty())
+                new SourceAnalysisResult(CreateSnapshot(sourcePath), MockConcreteSyntaxTree.FromSnapshot(projectSnapshot))
             ];
 
             IReadOnlyList<AnalysisResult> associated = this.projectMembership.AssociateSources(analyses, CancellationToken.None);

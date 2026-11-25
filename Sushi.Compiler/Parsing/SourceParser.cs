@@ -32,7 +32,15 @@ public sealed class SourceParser : IParser<ParserResult>
 
             if (context.ActivityParser.CanStart(context))
             {
-                activityDeclarations.Add(await context.ActivityParser.Parse(context, localDiagnostics, cancellationToken));
+                int previousIndex = context.Cursor.Index;
+                ActivityDeclarationSyntax declaration = await context.ActivityParser.Parse(context, localDiagnostics, cancellationToken);
+
+                if (context.Cursor.Index <= previousIndex)
+                {
+                    throw new InvalidOperationException("Activity parsing did not advance the token cursor.");
+                }
+
+                activityDeclarations.Add(declaration);
             }
             else
             {

@@ -5,25 +5,16 @@ using Sushi.Core.Source;
 
 namespace Sushi.Testing.Mocks;
 
-public sealed class MockConcreteSyntaxTree : IConcreteSyntaxTree
+public sealed class MockConcreteSyntaxTree(LexResult lexResult, SyntaxNode root, SourceSnapshot snapshot) : IConcreteSyntaxTree
 {
-    public LexResult LexResult { get; }
+    public LexResult LexResult { get; } = lexResult;
 
-    public SyntaxNode Root { get; }
+    public SyntaxNode Root { get; } = root;
 
-    public SourceSnapshot Snapshot { get; }
+    public SourceSnapshot Snapshot { get; } = snapshot;
 
-    public MockConcreteSyntaxTree(LexResult lexResult, SyntaxNode root, SourceSnapshot snapshot)
+    public static MockConcreteSyntaxTree FromSnapshot(SourceSnapshot snapshot)
     {
-        this.LexResult = lexResult;
-        this.Root = root;
-        this.Snapshot = snapshot;
-    }
-
-    public static MockConcreteSyntaxTree FromEmpty()
-    {
-        Uri uri =  new("file:///TestProject/Test.sus");
-        SourceSnapshot snapshot = SourceSnapshot.FromText(uri, null, "");
         LexResult result = new(snapshot, []);
         SyntaxNode root = new MockSyntaxNode();
         return new(result, root, snapshot);
