@@ -36,7 +36,7 @@ public sealed class SourceAnalyzer([NotNull] IKeywordProvider keywordProvider) :
         LexResult lexerResult = await this.lexer.Lex(snapshot, localDiagnostics, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ParserCursor cursor = new(lexerResult, cancellationToken);
+        ParserCursor cursor = new(lexerResult, keywordProvider, cancellationToken);
 
         ParsingContext context = new(lexerResult, cursor, keywordProvider);
 

@@ -21,6 +21,7 @@ public sealed class SourceLexer([NotNull] IKeywordProvider keywordProvider) : IL
     ([
         new CommentTokenizer(),
         new WhitespaceTokenizer(),
+        new PunctuationTokenizer(),
         new WordTokenizer(keywordProvider)
     ]);
 

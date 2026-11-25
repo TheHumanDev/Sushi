@@ -12,5 +12,6 @@ public enum LexTokenType
     LineTerminator,
     Keyword,
     Identifier,
-    EscapedIdentifier
+    EscapedIdentifier,
+    Punctuation
 }

@@ -15,11 +15,8 @@ public sealed class MockConcreteSyntaxTree : IConcreteSyntaxTree
 
     public MockConcreteSyntaxTree() : this(null!, null!, null!) { }
 
-    public MockConcreteSyntaxTree([NotNull] LexResult lexResult, [NotNull] SyntaxNode root, [NotNull] SourceSnapshot snapshot)
+    public MockConcreteSyntaxTree(LexResult lexResult, SyntaxNode root, SourceSnapshot snapshot)
     {
-        ArgumentNullException.ThrowIfNull(lexResult);
-        ArgumentNullException.ThrowIfNull(root);
-        ArgumentNullException.ThrowIfNull(snapshot);
         this.LexResult = lexResult;
         this.Root = root;
         this.Snapshot = snapshot;

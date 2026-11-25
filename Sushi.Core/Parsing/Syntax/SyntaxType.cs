@@ -8,5 +8,10 @@ public enum SyntaxType
     SourceFile,
     AccessModifierKeyword,
     ActivityDeclaration,
-    ActivityKeyword
+    ActivityKeyword,
+    OpenBraceToken,
+    CloseBraceToken,
+    IdentifierToken,
+    EscapedIdentifierToken,
+    RootKeyword
 }
