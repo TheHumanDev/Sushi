@@ -21,7 +21,8 @@ exclude_patterns = [
     ".DS_Store",
 ]
 extensions = [
-    "myst_parser"
+    "myst_parser",
+    "sphinx.ext.todo"
 ]
 language = "en"
 master_doc = "index"
@@ -45,3 +46,4 @@ html_context = {
 }
 html_static_path = ["_static"]
 html_logo = "_static/Sushi.png"
+todo_include_todos = True
