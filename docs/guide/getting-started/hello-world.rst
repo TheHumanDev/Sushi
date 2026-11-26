@@ -1,6 +1,9 @@
 ﻿Hello World!
 ==================
 
+.. important::
+    Implementation for this example is still under development and a working Hello World is not yet supported.
+
 Let's create our first Sushi program. In your project root, create a new file called ``.susproj`` and enter this code:
 
 .. code-block:: toml
