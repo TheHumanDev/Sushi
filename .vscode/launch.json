@@ -57,6 +57,15 @@
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "name": "Sushi: Documentation",
+            "type": "chrome",
+            "request": "launch",
+            "preLaunchTask": "clean-build: readthedocs",
+            "file": "${workspaceFolder}/docs/_build/html/index.html",
+            "cwd": "${workspaceFolder}",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

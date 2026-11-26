@@ -74,6 +74,19 @@
                 "reveal": "silent",
                 "panel": "dedicated"
             }
+        },
+        {
+            "label": "clean-build: readthedocs",
+            "type": "shell",
+            "command": "-m sphinx -b html -a -n -W -E --keep-going docs docs/_build/html",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "${workspaceFolder}/.venv/Scripts/python.exe",
+
+                }
+            },
+            "isBackground": false
         }
     ]
 }

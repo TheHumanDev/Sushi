@@ -17,4 +17,5 @@ Contents
 .. toctree::
 
    Home <self>
+   Getting Started <guide/getting-started/section>
    Sushi Language Specification <specification/introduction>
