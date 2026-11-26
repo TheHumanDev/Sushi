@@ -1,4 +1,6 @@
-﻿namespace Sushi.Compiler;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Sushi.Compiler;
 
 /// <summary>
 /// Orchestrates the compilation process through the steps necessary
@@ -9,8 +11,11 @@ public interface ISushiCompiler
     /// <summary>
     /// Runs a compile job.
     /// </summary>
+    /// <param name="path">
+    /// The path to the project, solution, or folder containing the project or solution.
+    /// </param>
     /// <returns>
-    /// An awaitable <see cref="Task"/>.
+    /// An awaitable <see cref="Task"/> that returns the result.
     /// </returns>
-    public Task CompileJob();
+    public Task<CompilationResult> CompileJob([NotNull] string path);
 }

@@ -3,6 +3,7 @@ using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Parsing.Syntax;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Lexing.Tokenization;
+using Sushi.Core.Parsing;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Parsing;
@@ -10,7 +11,7 @@ namespace Sushi.Compiler.Parsing;
 /// <summary>
 /// Parses a source file at the top-level and coordinates parsing delegation.
 /// </summary>
-public sealed class SourceParser : IParser<ParserResult>
+public sealed class SourceParser : IParser<ParserResult>, ISourceParser<ParsingContext>
 {
     /// <inheritdoc />
     public bool CanStart([NotNull] ParsingContext context) => true;

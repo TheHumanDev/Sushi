@@ -2,14 +2,18 @@
 using NUnit.Framework;
 using OmniSharp.Extensions.LanguageServer.Protocol;
 using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Sushi.Compiler;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Lexing;
+using Sushi.Compiler.Parsing;
 using Sushi.Compiler.Source;
+using Sushi.Core;
 using Sushi.Core.Analysis;
 using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Lexing;
+using Sushi.Core.Parsing;
 using Sushi.Core.Source;
 using Sushi.LanguageServer.Workspace;
 using Sushi.Testing.Mocks;
@@ -26,6 +30,12 @@ public sealed class WorkspaceProjectMembershipTests
 
     private IKeywordProvider keywordProvider;
 
+    private ILexer lexer;
+
+    private ISourceParser<ParsingContext> parser;
+
+    private ISushiContext<ParsingContext> context;
+
     private WorkspaceOrchestrator orchestrator;
 
     private WorkspaceProjectMembership projectMembership;
@@ -34,7 +44,10 @@ public sealed class WorkspaceProjectMembershipTests
     public void OneTimeSetup()
     {
         this.keywordProvider = new KeywordProvider();
-        this.documentProvider = new SushiSourceDocumentProvider(this.keywordProvider);
+        this.lexer = new SourceLexer(this.keywordProvider);
+        this.parser = new SourceParser();
+        this.context = new SushiContext(this.keywordProvider, this.lexer, this.parser);
+        this.documentProvider = new SushiSourceDocumentProvider(this.context);
         this.sourceLoader = new ProjectSourceLoader(this.documentProvider);
         this.projectMembership = new WorkspaceProjectMembership(this.sourceLoader);
         this.diagnosticReporterFactory = new DiagnosticReporterFactory();
@@ -74,7 +87,7 @@ public sealed class WorkspaceProjectMembershipTests
             sources[0].ProjectUri
                 .Should()
                 .Be(projectSnapshot.Uri);
-            
+
             sources[1].ProjectUri
                 .Should()
                 .BeNull();
@@ -278,7 +291,7 @@ public sealed class WorkspaceProjectMembershipTests
         result
             .Should()
             .NotBeNull();
-        
+
         diagnostics
             .Should()
             .BeEmpty();

@@ -27,7 +27,7 @@ public sealed class SushiCompileCommand : ISushiCommand
         new("path", false, PathDescription),
         new("debug", true, DebugDescription)
     ]);
-    
+
     /// <inheritdoc />
     public bool AllowsUnnamedParameter => false;
 
@@ -38,7 +38,7 @@ public sealed class SushiCompileCommand : ISushiCommand
         {
             CompilerOptions options = await CompilerOptions.FromContext(context);
 
-            await Diag.Monitor("Compilation", context.Compiler.CompileJob);
+            await Diag.Monitor("Compilation", () => context.Compiler.CompileJob(options.Path));
         }
         catch (SushiProgramException exception)
         {

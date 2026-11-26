@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Core.Lexing;
+using Sushi.Core.Parsing;
 
 namespace Sushi.Compiler.Parsing;
 
-/// <summary>
-/// Contains the current context of the parsing pass, including available parsers and the cursor.
-/// </summary>
-public sealed class ParsingContext
+/// <inheritdoc cref="IParsingContext" />
+public sealed class ParsingContext : IParsingContext
 {
     /// <summary>
     /// The top-level parser that handles source-file parsing.

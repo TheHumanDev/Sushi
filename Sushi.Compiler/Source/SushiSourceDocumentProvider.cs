@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using Sushi.Compiler.Parsing;
+using Sushi.Core;
 using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 
@@ -8,14 +10,14 @@ namespace Sushi.Compiler.Source;
 /// <summary>
 /// The document provider for all sushi source files.
 /// </summary>
-/// <param name="keywordProvider">
-/// The keyword provider used to discover registered keywords.
+/// <param name="context">
+/// The context used to link parts of the analysis process together.
 /// </param>
-public sealed class SushiSourceDocumentProvider([NotNull] IKeywordProvider keywordProvider) : ISourceDocumentProvider
+public sealed class SushiSourceDocumentProvider([NotNull] ISushiContext<ParsingContext> context) : ISourceDocumentProvider
 {
     /// <inheritdoc />
     public IReadOnlyList<ISourceDocumentType> DocumentTypes { get; } = new ReadOnlyCollection<ISourceDocumentType>([
-       new SushiSourceDocumentType(keywordProvider),
+       new SushiSourceDocumentType(context),
        new SushiProjectDocumentType(),
        new SushiSolutionDocumentType()
     ]);
@@ -30,6 +32,6 @@ public sealed class SushiSourceDocumentProvider([NotNull] IKeywordProvider keywo
 
         string normalizedExtension = extension.Replace(".", string.Empty, StringComparison.OrdinalIgnoreCase);
 
-        return this.DocumentTypes.FirstOrDefault(doc => doc.Extension.Equals( normalizedExtension, StringComparison.OrdinalIgnoreCase))?.LanguageID;
+        return this.DocumentTypes.FirstOrDefault(doc => doc.Extension.Equals(normalizedExtension, StringComparison.OrdinalIgnoreCase))?.LanguageID;
     }
 }

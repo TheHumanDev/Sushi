@@ -24,4 +24,18 @@ public interface IProjectSourceLoader
     /// The source paths included by the project.
     /// </returns>
     public IReadOnlyList<string> DiscoverSourcePaths(string projectDirectory, ProjectDefinition project, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Resolves an explicit project or the single project in a directory using existing compilation rules.
+    /// </summary>
+    /// <param name="projectOrFolderPath">
+    /// The project path or folder path containing the project.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to cancel resolution.
+    /// </param>
+    /// <returns>
+    /// The resolved project path.
+    /// </returns>
+    public string ResolveProjectPath(string projectOrFolderPath, CancellationToken cancellationToken);
 }

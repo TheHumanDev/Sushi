@@ -1,11 +1,15 @@
 ﻿using AwesomeAssertions;
 using NUnit.Framework;
+using Sushi.Compiler;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Lexing;
+using Sushi.Compiler.Parsing;
 using Sushi.Compiler.Source;
+using Sushi.Core;
 using Sushi.Core.Analysis;
 using Sushi.Core.Configuration;
 using Sushi.Core.Lexing;
+using Sushi.Core.Parsing;
 using Sushi.Core.Source;
 
 namespace Sushi.Testing.Compiler.Configuration;
@@ -16,12 +20,18 @@ public sealed class ProjectSourceLoaderTests
     private IProjectSourceLoader sourceLoader;
     private ISourceDocumentProvider documentProvider;
     private IKeywordProvider keywordProvider;
+    private ILexer lexer;
+    private ISourceParser<ParsingContext> parser;
+    private ISushiContext<ParsingContext> context;
 
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
         this.keywordProvider = new KeywordProvider();
-        this.documentProvider = new SushiSourceDocumentProvider(this.keywordProvider);
+        this.lexer = new SourceLexer(this.keywordProvider);
+        this.parser = new SourceParser();
+        this.context = new SushiContext(this.keywordProvider, this.lexer, this.parser);
+        this.documentProvider = new SushiSourceDocumentProvider(this.context);
         this.sourceLoader = new ProjectSourceLoader(this.documentProvider);
     }
 

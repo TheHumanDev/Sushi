@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Analysis;
+using Sushi.Compiler.Parsing;
+using Sushi.Core;
 using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
-using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Source;
@@ -10,12 +11,21 @@ namespace Sushi.Compiler.Source;
 /// <summary>
 /// Represents a sushi source document, or .sus file.
 /// </summary>
-/// <param name="keywordProvider">
-/// The keyword provider used to discover registered keywords.
-/// </param>
-public sealed class SushiSourceDocumentType([NotNull] IKeywordProvider keywordProvider) : ISourceDocumentType
+public sealed class SushiSourceDocumentType : ISourceDocumentType
 {
-    private readonly SourceAnalyzer analyzer = new(keywordProvider);
+    private readonly SourceAnalyzer analyzer;
+
+    /// <summary>
+    /// Creates a new instance of <see cref="SushiSourceDocumentType" />.
+    /// </summary>
+    /// <param name="context">
+    /// The context used to link parts of the analysis process together.
+    /// </param>
+    public SushiSourceDocumentType([NotNull] ISushiContext<ParsingContext> context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        this.analyzer = new(context);
+    }
 
     /// <inheritdoc />
     public string Extension { get; } = "sus";

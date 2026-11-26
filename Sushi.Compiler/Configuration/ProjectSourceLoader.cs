@@ -47,4 +47,47 @@ public class ProjectSourceLoader([NotNull] ISourceDocumentProvider documentProvi
 
         return paths;
     }
+
+    /// <inheritdoc />
+    public string ResolveProjectPath(string projectOrFolderPath, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string path = Path.GetFullPath(projectOrFolderPath);
+
+        if (File.Exists(path))
+        {
+            string extension = Path.GetExtension(path);
+
+            // TODO: Incorporate this into the SourceDocumentProvider. Won't be able
+            // to make agnostic until the solution file is properly implemented.
+            if (extension.Equals(".susproj", StringComparison.OrdinalIgnoreCase))
+            {
+                return path;
+            }
+
+            if (extension.Equals(".susln", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new NotSupportedException("Solution compilation is not yet supported. Compile a .susproj directly.");
+            }
+
+            throw new ArgumentException($"\"{path}\" is not a Sushi project file.", nameof(projectOrFolderPath));
+        }
+
+        if (!Directory.Exists(path))
+        {
+            throw new DirectoryNotFoundException($"Project directory \"{path}\" does not exist.");
+        }
+
+        string[] projects = [.. Directory
+            .EnumerateFiles(path, "*.susproj", SearchOption.TopDirectoryOnly)
+            .OrderBy(project => project, StringComparer.Ordinal)];
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return projects.Length switch
+        {
+            1 => projects[0],
+            0 => throw new InvalidOperationException($"Directory \"{path}\" does not contain a Sushi project file."),
+            _ => throw new InvalidOperationException($"Directory \"{path}\" contains multiple Sushi project files. Specify the project to compile explicitly.")
+        };
+    }
 }

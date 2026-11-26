@@ -6,6 +6,7 @@ using Sushi.Compiler.Parsing;
 using Sushi.Compiler.Parsing.Syntax;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Lexing;
+using Sushi.Core.Parsing;
 using Sushi.Core.Source;
 
 namespace Sushi.Testing.Compiler.Parsing;

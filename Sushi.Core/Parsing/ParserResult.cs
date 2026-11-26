@@ -1,6 +1,6 @@
 ﻿using Sushi.Core.Parsing.Syntax;
 
-namespace Sushi.Compiler.Parsing;
+namespace Sushi.Core.Parsing;
 
 /// <summary>
 /// Represents the syntax tree.

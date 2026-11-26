@@ -1,9 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Core.Diagnostics;
-using Sushi.Core.Lexing;
 using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Lexing;
+namespace Sushi.Core.Lexing;
 
 /// <summary>
 /// Performs lexical analysis of text for a specific kind of document, such as a source file or project file.

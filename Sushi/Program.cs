@@ -11,10 +11,13 @@ using Sushi.Compiler;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Lexing;
+using Sushi.Compiler.Parsing;
 using Sushi.Compiler.Source;
+using Sushi.Core;
 using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Lexing;
+using Sushi.Core.Parsing;
 using Sushi.Core.Source;
 using Sushi.Diagnostics;
 using Sushi.Diagnostics.Exceptions;
@@ -80,7 +83,7 @@ internal static class Program
             Log.Error(exception, "Unhandled Exception");
             Exit(ExitCode.UnhandledException);
         }
-#pragma warning restore CA1031 // Do not catch general exception types    
+#pragma warning restore CA1031 // Do not catch general exception types
     }
 
     /// <summary>
@@ -164,10 +167,13 @@ internal static class Program
         services.AddSingleton<ICommandProvider, SushiCommandProvider>();
         services.AddSingleton<IProjectSourceLoader, ProjectSourceLoader>();
         services.AddSingleton<IKeywordProvider, KeywordProvider>();
+        services.AddTransient<ISushiContext<ParsingContext>, SushiContext>();
+        services.AddTransient<ILexer, SourceLexer>();
+        services.AddTransient<ISourceParser<ParsingContext>, SourceParser>();
         services.AddTransient<ICommandContext, SushiCommandContext>(services
             => ActivatorUtilities.CreateInstance<SushiCommandContext>(services, command, args, levelSwitch));
     }
-    
+
     /// <summary>
     /// Event that fires when the application is exiting.
     /// </summary>
@@ -182,7 +188,7 @@ internal static class Program
         Log.CloseAndFlush();
         serviceProvider?.Dispose();
     }
-    
+
     /// <summary>
     /// Exits the program gracefully.
     /// </summary>
