@@ -1,6 +1,10 @@
 ﻿Installation
 ==================
 
+.. important::
+    Windows x64 is currently the only supported operating system. Windows x32 and Linux
+    may be supported in future versions.
+
 There are two ways to install Sushi:
 
 1. Install the Visual Studio Code extension from the Github Repository: `Latest Release <https://github.com/TheHumanDev/Sushi/releases/latest>`__
