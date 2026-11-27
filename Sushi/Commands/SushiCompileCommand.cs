@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using Serilog;
+using Serilog.Events;
 using Sushi.Commands.Options;
 using Sushi.Compiler;
 using Sushi.Core.Diagnostics;
@@ -67,38 +68,36 @@ public sealed class SushiCompileCommand : ISushiCommand
     }
 
     /// <summary>
-    /// Logs a diagnostic message.
+    /// Logs a diagnostic message at the appropriate severity, including source
+    /// coordinates when the diagnostic is associated with a source snapshot.
     /// </summary>
     /// <param name="diagnostic">
-    /// The message to log.
+    /// The diagnostic to log.
     /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown if diagnostic is null.
+    /// Thrown if diagnostic has an unsupported severity.
     /// </exception>
     private static void LogDiagnostic([NotNull] SushiDiagnostic diagnostic)
     {
         ArgumentNullException.ThrowIfNull(diagnostic);
 
-        (int line, int character) = diagnostic.Span.Snapshot.GetUTF16Position(diagnostic.Span.Start);
-
-        string path = diagnostic.Span.Snapshot.Uri.LocalPath;
-
-        switch (diagnostic.Severity)
+        LogEventLevel level = diagnostic.Severity switch
         {
-            case DiagnosticSeverity.Error:
-                Log.Error("{Path}({Line},{Column}): {Code}: {Message}", path, line + 1, character + 1, diagnostic.DisplayName, diagnostic.Message);
-                break;
-            case DiagnosticSeverity.Warning:
-                Log.Warning("{Path}({Line},{Column}): {Code}: {Message}", path, line + 1, character + 1, diagnostic.DisplayName, diagnostic.Message);
-                break;
-            case DiagnosticSeverity.Information:
-                Log.Information("{Path}({Line},{Column}): {Code}: {Message}", path, line + 1, character + 1, diagnostic.DisplayName, diagnostic.Message);
-                break;
-            case DiagnosticSeverity.Hint:
-                Log.Debug("{Path}({Line},{Column}): {Code}: {Message}", path, line + 1, character + 1, diagnostic.DisplayName, diagnostic.Message);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(diagnostic));
+            DiagnosticSeverity.Error => LogEventLevel.Error,
+            DiagnosticSeverity.Warning => LogEventLevel.Warning,
+            DiagnosticSeverity.Information => LogEventLevel.Information,
+            DiagnosticSeverity.Hint => LogEventLevel.Debug,
+            _ => throw new ArgumentOutOfRangeException(nameof(diagnostic), diagnostic.Severity, "Unsupported diagnostic severity.")
+        };
+
+        if (diagnostic.Span.Snapshot is { } snapshot)
+        {
+            (int line, int character) = diagnostic.Span.Snapshot.GetUTF16Position(diagnostic.Span.Start);
+
+            Log.Write(level, "{Path}({Line},{Column}): {Code}: {Message}", snapshot.Uri.LocalPath, line + 1, character + 1, diagnostic.DisplayName, diagnostic.Message);
+            return;
         }
+
+        Log.Write(level, "{Code}: {Message}", diagnostic.DisplayName, diagnostic.Message);
     }
 }
