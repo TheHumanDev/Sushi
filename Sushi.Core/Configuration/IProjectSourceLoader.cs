@@ -1,4 +1,5 @@
 ﻿using Sushi.Core.Analysis;
+using Sushi.Core.Source;
 
 namespace Sushi.Core.Configuration;
 
@@ -35,7 +36,18 @@ public interface IProjectSourceLoader
     /// The token used to cancel resolution.
     /// </param>
     /// <returns>
-    /// The resolved project path.
+    /// An awaitable <see cref="Task" /> that returns the resolved project path.
     /// </returns>
-    public string ResolveProjectPath(string projectOrFolderPath, CancellationToken cancellationToken);
+    public Task<string> ResolveProjectPath(string projectOrFolderPath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Loads canonical UTF-8 bytes without changing their source identity.
+    /// </summary>
+    /// <param name="path">
+    /// The path of the snapshot.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to cancel loading from disk.
+    /// </param>
+    public Task<SourceSnapshot> LoadSnapshot(string path, CancellationToken cancellationToken);
 }

@@ -1,4 +1,5 @@
-﻿using Sushi.Core.Lexing;
+﻿using Sushi.Core.Configuration;
+using Sushi.Core.Lexing;
 using Sushi.Core.Parsing;
 
 namespace Sushi.Core;
@@ -23,4 +24,9 @@ public interface ISushiContext<TContext> where TContext : IParsingContext
     /// The source parser used to convert a stream of tokens into a syntax tree.
     /// </summary>
     public ISourceParser<TContext> Parser { get; }
+
+    /// <summary>
+    /// The source loader used to load project source paths.
+    /// </summary>
+    public IProjectSourceLoader ProjectSourceLoader { get; }
 }
