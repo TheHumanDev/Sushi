@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Parsing;
 using Sushi.Core;
+using Sushi.Core.Configuration;
 using Sushi.Core.Lexing;
 using Sushi.Core.Parsing;
 
@@ -18,6 +19,9 @@ public sealed class SushiContext : ISushiContext<ParsingContext>
     /// <inheritdoc />
     public ISourceParser<ParsingContext> Parser { get; }
 
+    /// <inheritdoc />
+    public IProjectSourceLoader ProjectSourceLoader { get; }
+
     /// <summary>
     /// Creates a new instance of <see cref="SushiContext" />.
     /// </summary>
@@ -34,13 +38,16 @@ public sealed class SushiContext : ISushiContext<ParsingContext>
     public SushiContext(
         [NotNull] IKeywordProvider keywordProvider,
         [NotNull] ILexer lexer,
-        [NotNull] ISourceParser<ParsingContext> sourceParser)
+        [NotNull] ISourceParser<ParsingContext> sourceParser,
+        [NotNull] IProjectSourceLoader sourceLoader)
     {
         ArgumentNullException.ThrowIfNull(keywordProvider);
         ArgumentNullException.ThrowIfNull(lexer);
         ArgumentNullException.ThrowIfNull(sourceParser);
+        ArgumentNullException.ThrowIfNull(sourceLoader);
         this.KeywordProvider = keywordProvider;
         this.Lexer = lexer;
         this.Parser = sourceParser;
+        this.ProjectSourceLoader = sourceLoader;
     }
 }
