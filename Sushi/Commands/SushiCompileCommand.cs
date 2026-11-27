@@ -38,7 +38,9 @@ public sealed class SushiCompileCommand : ISushiCommand
         {
             CompilerOptions options = await CompilerOptions.FromContext(context);
 
-            await Diag.Monitor("Compilation", () => context.Compiler.CompileJob(options.Path));
+            CancellationToken cancellationToken = new();
+
+            await Diag.Monitor("Compilation", () => context.Compiler.CompileJob(options.Path, cancellationToken));
         }
         catch (SushiProgramException exception)
         {

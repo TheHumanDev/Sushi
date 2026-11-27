@@ -1,20 +1,49 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Sushi.Compiler.Analysis;
+using Sushi.Compiler.Backend.Native;
 using Sushi.Compiler.Diagnostics;
+using Sushi.Compiler.Intermediate.Lowering;
+using Sushi.Compiler.Parsing;
+using Sushi.Core;
+using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Source;
 
 namespace Sushi.Compiler;
 
 /// <inheritdoc cref="ISushiCompiler"/>
-public sealed class SushiCompiler : ISushiCompiler
+public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> context, [NotNull] ExecutableBuilder executableBuilder) : ISushiCompiler
 {
     /// <inheritdoc />
-    public async Task<CompilationResult> CompileJob([NotNull] string path)
+    public async Task<CompilationResult> CompileJob([NotNull] string path, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
-        IDiagnosticReporter diagnosticReporter = new DiagnosticReporter();
+#pragma warning disable CA1031 // Do not catch general exception types
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
-        return await this.CompileAsync(path, diagnosticReporter);
+            string projectPath = await context.ProjectSourceLoader.ResolveProjectPath(path, cancellationToken);
+
+            string? projectDirectory = Path.GetDirectoryName(projectPath);
+
+            if (string.IsNullOrWhiteSpace(projectDirectory))
+            {
+                IDiagnosticReporter diagnosticReporter = new DiagnosticReporter();
+                diagnosticReporter.GenerateErrorWithCustomMessage(ErrorType.ExpectedSyntax, $"Project \"{path}\" has no containing directory.", new SourceSpan());
+                return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
+            }
+
+            return await this.CompileAsync(path, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            IDiagnosticReporter diagnosticReporter = new DiagnosticReporter();
+            diagnosticReporter.GenerateErrorWithCustomMessage(ErrorType.ExpectedSyntax, exception.Message, new SourceSpan());
+            return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
+        }
+#pragma warning restore CA1031 // Do not catch general exception types
     }
 
     /// <summary>
@@ -23,17 +52,72 @@ public sealed class SushiCompiler : ISushiCompiler
     /// <param name="path">
     /// The path where the project or solution lives, or its direct file path.
     /// </param>
-    /// <param name="diagnosticReporter">
-    /// The reporter used to accumulate diagnostics.
+    /// <param name="cancellationToken">
+    /// The token used to cancel compilation.
     /// </param>
     /// <returns>
     /// An awaitable <see cref="Task" /> that returns the result.
     /// </returns>
-    private async Task<CompilationResult> CompileAsync([NotNull] string path, [NotNull] IDiagnosticReporter diagnosticReporter)
+    private async Task<CompilationResult> CompileAsync([NotNull] string path, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        ArgumentNullException.ThrowIfNull(diagnosticReporter);
 
-        return new CompilationResult(true);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        IDiagnosticReporter diagnosticReporter = new DiagnosticReporter();
+
+        SourceSnapshot projectSnapshot = await context.ProjectSourceLoader.LoadSnapshot(path, cancellationToken);
+
+        ProjectAnalysisResult projectResult = (ProjectAnalysisResult)await new ProjectAnalyzer().Analyze(projectSnapshot, diagnosticReporter, cancellationToken);
+
+        if (diagnosticReporter.HasErrors())
+        {
+            return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
+        }
+
+        ProjectDefinition project = projectResult.Project ?? throw new InvalidOperationException("Project analysis succeeded without producing a project definition.");
+
+        IReadOnlyList<string> sourcePaths = context.ProjectSourceLoader.DiscoverSourcePaths(path, project, cancellationToken);
+
+        if (sourcePaths.Count == 0)
+        {
+            throw new InvalidOperationException($"Project \"{project.Name}\" did not select any Sushi source files.");
+        }
+
+        List<SourceAnalysisResult> sources = [];
+
+        foreach (string sourcePath in sourcePaths)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            SourceSnapshot snapshot = await context.ProjectSourceLoader.LoadSnapshot(sourcePath, cancellationToken);
+            SourceAnalysisResult source = (SourceAnalysisResult)await new SourceAnalyzer(context).Analyze(snapshot, diagnosticReporter, cancellationToken);
+
+            sources.Add(source);
+        }
+
+        LoweredFunction? entry = new(Intermediate.IRAccessibility.Public, "__sushi_root_entry", Intermediate.IRType.Void, []);
+
+        LoweredFunction? stop = new(Intermediate.IRAccessibility.Public, "__sushi_root_stop", Intermediate.IRType.Void, []);
+
+        if (diagnosticReporter.HasErrors() || entry is null)
+        {
+            return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
+        }
+
+        string outputPath = GetOutputPath(path, project);
+
+        // TODO: Eventually project configuration will determine what builder to use.
+        CompiledArtifact artifact = await executableBuilder.BuildAsync(entry, stop, [], outputPath, cancellationToken);
+
+        return CompilationResult.FromSuccess(diagnosticReporter.ReportDiagnostics(), artifact);
+    }
+
+    private static string GetOutputPath(string projectDirectory, ProjectDefinition project)
+    {
+        string target = project.Build.DefaultTarget
+            ?? throw new InvalidOperationException("The analyzed project does not have a default build target.");
+
+        return Path.Combine(projectDirectory, "bin", target, project.Assembly);
     }
 }

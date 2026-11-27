@@ -14,8 +14,11 @@ public interface ISushiCompiler
     /// <param name="path">
     /// The path to the project, solution, or folder containing the project or solution.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The token used to cancel compilation.
+    /// </param>
     /// <returns>
     /// An awaitable <see cref="Task"/> that returns the result.
     /// </returns>
-    public Task<CompilationResult> CompileJob([NotNull] string path);
+    public Task<CompilationResult> CompileJob([NotNull] string path, CancellationToken cancellationToken);
 }

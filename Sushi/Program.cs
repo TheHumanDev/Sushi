@@ -8,6 +8,10 @@ using Serilog.Events;
 using Serilog.Formatting.Compact;
 using Sushi.Commands;
 using Sushi.Compiler;
+using Sushi.Compiler.Backend;
+using Sushi.Compiler.Backend.Clang;
+using Sushi.Compiler.Backend.LLVM;
+using Sushi.Compiler.Backend.Native;
 using Sushi.Compiler.Configuration;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Lexing;
@@ -170,8 +174,16 @@ internal static class Program
         services.AddTransient<ISushiContext<ParsingContext>, SushiContext>();
         services.AddTransient<ILexer, SourceLexer>();
         services.AddTransient<ISourceParser<ParsingContext>, SourceParser>();
+        services.AddTransient<IProjectSourceLoader, ProjectSourceLoader>();
         services.AddTransient<ICommandContext, SushiCommandContext>(services
             => ActivatorUtilities.CreateInstance<SushiCommandContext>(services, command, args, levelSwitch));
+
+        // Backend services
+        services.AddTransient<IObjectEmitter, LLVMObjectEmitter>();
+        services.AddTransient<IModuleEmitter, LLVMModuleEmitter>();
+        services.AddTransient<ILinker, ClangLinker>();
+        services.AddTransient<IEntryShim, LLVMEntryShim>();
+        services.AddTransient<ExecutableBuilder>();
     }
 
     /// <summary>
