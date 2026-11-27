@@ -19,12 +19,12 @@ public sealed record CompilationResult
     /// <summary>
     /// Any accumulated diagnostics during compilation.
     /// </summary>
-    public IReadOnlyList<SushiDiagnostic> Diagnostics { get; init; }
+    public IReadOnlyList<SushiDiagnostic> Diagnostics { get; private init; }
 
     /// <summary>
     /// The compiled artifact. Null if the compilation result failed.
     /// </summary>
-    public CompiledArtifact? Artifact { get; set; }
+    public CompiledArtifact? Artifact { get; private init; }
 
     /// <summary>
     /// Creates a new instance of <see cref="CompilationResult" />.
