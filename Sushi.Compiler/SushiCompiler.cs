@@ -39,6 +39,10 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
 
             return await this.CompileAsync(projectPath, cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
             IDiagnosticReporter diagnosticReporter = new DiagnosticReporter();
