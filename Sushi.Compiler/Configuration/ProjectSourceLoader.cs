@@ -49,7 +49,7 @@ public class ProjectSourceLoader([NotNull] ISourceDocumentProvider documentProvi
     }
 
     /// <inheritdoc />
-    public string ResolveProjectPath(string projectOrFolderPath, CancellationToken cancellationToken)
+    public Task<string> ResolveProjectPath(string projectOrFolderPath, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string path = Path.GetFullPath(projectOrFolderPath);
@@ -62,7 +62,7 @@ public class ProjectSourceLoader([NotNull] ISourceDocumentProvider documentProvi
             // to make agnostic until the solution file is properly implemented.
             if (extension.Equals(".susproj", StringComparison.OrdinalIgnoreCase))
             {
-                return path;
+                return Task.FromResult(path);
             }
 
             if (extension.Equals(".susln", StringComparison.OrdinalIgnoreCase))
@@ -85,9 +85,22 @@ public class ProjectSourceLoader([NotNull] ISourceDocumentProvider documentProvi
         cancellationToken.ThrowIfCancellationRequested();
         return projects.Length switch
         {
-            1 => projects[0],
+            1 => Task.FromResult(projects[0]),
             0 => throw new InvalidOperationException($"Directory \"{path}\" does not contain a Sushi project file."),
             _ => throw new InvalidOperationException($"Directory \"{path}\" contains multiple Sushi project files. Specify the project to compile explicitly.")
         };
+    }
+
+    /// <inheritdoc />
+    public async Task<SourceSnapshot> LoadSnapshot(string path, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string fullPath = Path.GetFullPath(path);
+        byte[] bytes = await File.ReadAllBytesAsync(fullPath, cancellationToken);
+
+        SourceSnapshot snapshot = SourceSnapshot.FromUTF8(new Uri(fullPath), version: null, bytes);
+        cancellationToken.ThrowIfCancellationRequested();
+        return snapshot;
     }
 }
