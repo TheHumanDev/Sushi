@@ -169,7 +169,6 @@ internal static class Program
         services.AddSingleton<ISourceDocumentProvider, SushiSourceDocumentProvider>();
         services.AddSingleton<IDiagnosticReporterFactory, DiagnosticReporterFactory>();
         services.AddSingleton<ICommandProvider, SushiCommandProvider>();
-        services.AddSingleton<IProjectSourceLoader, ProjectSourceLoader>();
         services.AddSingleton<IKeywordProvider, KeywordProvider>();
         services.AddTransient<ISushiContext<ParsingContext>, SushiContext>();
         services.AddTransient<ILexer, SourceLexer>();
