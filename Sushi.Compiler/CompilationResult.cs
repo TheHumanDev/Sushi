@@ -24,7 +24,7 @@ public sealed record CompilationResult
     /// <summary>
     /// The compiled artifact. Null if the compilation result failed.
     /// </summary>
-    CompiledArtifact? Artifact { get; set; }
+    public CompiledArtifact? Artifact { get; set; }
 
     /// <summary>
     /// Creates a new instance of <see cref="CompilationResult" />.
@@ -32,7 +32,7 @@ public sealed record CompilationResult
     /// <param name="succeeded">
     /// Whether the job succeeded or ran into an issue.
     /// </param>
-    public CompilationResult(bool succeeded)
+    private CompilationResult(bool succeeded)
     {
         this.Succeeded = succeeded;
         this.Diagnostics = [];
