@@ -18,5 +18,6 @@ public enum SushiProgramError
     /// <summary>
     /// The cause of the error is unknown.
     /// </summary>
-    UnknownError
+    UnknownError,
+    CompilationFailed
 }
