@@ -26,7 +26,6 @@ public sealed class SushiDocumentTypeTests
     private ISourceParser<ParsingContext> parser;
 
     private ISourceDocumentProvider documentProvider;
-    private IProjectSourceLoader sourceLoader;
 
     [OneTimeSetUp]
     public void OneTimeSetup()
@@ -34,8 +33,7 @@ public sealed class SushiDocumentTypeTests
         this.keywordProvider = new KeywordProvider();
         this.lexer = new SourceLexer(this.keywordProvider);
         this.parser = new SourceParser();
-        this.sourceLoader = new ProjectSourceLoader(this.documentProvider);
-        this.context = new SushiContext(this.keywordProvider, this.lexer, this.parser, this.sourceLoader);
+        this.context = new SushiContext(this.keywordProvider, this.lexer, this.parser);
         this.documentProvider = new SushiSourceDocumentProvider(this.context);
     }
 

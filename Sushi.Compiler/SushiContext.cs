@@ -19,9 +19,6 @@ public sealed class SushiContext : ISushiContext<ParsingContext>
     /// <inheritdoc />
     public ISourceParser<ParsingContext> Parser { get; }
 
-    /// <inheritdoc />
-    public IProjectSourceLoader ProjectSourceLoader { get; }
-
     /// <summary>
     /// Creates a new instance of <see cref="SushiContext" />.
     /// </summary>
@@ -38,16 +35,13 @@ public sealed class SushiContext : ISushiContext<ParsingContext>
     public SushiContext(
         [NotNull] IKeywordProvider keywordProvider,
         [NotNull] ILexer lexer,
-        [NotNull] ISourceParser<ParsingContext> sourceParser,
-        [NotNull] IProjectSourceLoader sourceLoader)
+        [NotNull] ISourceParser<ParsingContext> sourceParser)
     {
         ArgumentNullException.ThrowIfNull(keywordProvider);
         ArgumentNullException.ThrowIfNull(lexer);
         ArgumentNullException.ThrowIfNull(sourceParser);
-        ArgumentNullException.ThrowIfNull(sourceLoader);
         this.KeywordProvider = keywordProvider;
         this.Lexer = lexer;
         this.Parser = sourceParser;
-        this.ProjectSourceLoader = sourceLoader;
     }
 }

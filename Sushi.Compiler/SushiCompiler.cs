@@ -7,13 +7,14 @@ using Sushi.Compiler.Intermediate.Lowering;
 using Sushi.Compiler.Parsing;
 using Sushi.Core;
 using Sushi.Core.Analysis;
+using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler;
 
 /// <inheritdoc cref="ISushiCompiler"/>
-public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> context, [NotNull] ExecutableBuilder executableBuilder) : ISushiCompiler
+public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> context, [NotNull] ExecutableBuilder executableBuilder, [NotNull] IProjectSourceLoader sourceLoader) : ISushiCompiler
 {
     /// <inheritdoc />
     public async Task<CompilationResult> CompileJob([NotNull] string path, CancellationToken cancellationToken)
@@ -25,7 +26,7 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            string projectPath = await context.ProjectSourceLoader.ResolveProjectPath(path, cancellationToken);
+            string projectPath = await sourceLoader.ResolveProjectPath(path, cancellationToken);
 
             string? projectDirectory = Path.GetDirectoryName(projectPath);
 
@@ -67,7 +68,7 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
 
         IDiagnosticReporter diagnosticReporter = new DiagnosticReporter();
 
-        SourceSnapshot projectSnapshot = await context.ProjectSourceLoader.LoadSnapshot(path, cancellationToken);
+        SourceSnapshot projectSnapshot = await sourceLoader.LoadSnapshot(path, cancellationToken);
 
         ProjectAnalysisResult projectResult = (ProjectAnalysisResult)await new ProjectAnalyzer().Analyze(projectSnapshot, diagnosticReporter, cancellationToken);
 
@@ -78,7 +79,7 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
 
         ProjectDefinition project = projectResult.Project ?? throw new InvalidOperationException("Project analysis succeeded without producing a project definition.");
 
-        IReadOnlyList<string> sourcePaths = context.ProjectSourceLoader.DiscoverSourcePaths(path, project, cancellationToken);
+        IReadOnlyList<string> sourcePaths = sourceLoader.DiscoverSourcePaths(path, project, cancellationToken);
 
         if (sourcePaths.Count == 0)
         {
@@ -91,7 +92,7 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            SourceSnapshot snapshot = await context.ProjectSourceLoader.LoadSnapshot(sourcePath, cancellationToken);
+            SourceSnapshot snapshot = await sourceLoader.LoadSnapshot(sourcePath, cancellationToken);
             SourceAnalysisResult source = (SourceAnalysisResult)await new SourceAnalyzer(context).Analyze(snapshot, diagnosticReporter, cancellationToken);
 
             sources.Add(source);
