@@ -83,7 +83,9 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
 
         ProjectDefinition project = projectResult.Project ?? throw new InvalidOperationException("Project analysis succeeded without producing a project definition.");
 
-        IReadOnlyList<string> sourcePaths = sourceLoader.DiscoverSourcePaths(path, project, cancellationToken);
+        string projectDirectory = Path.GetDirectoryName(path) ?? throw new InvalidOperationException("Project path has no containing directory.");
+
+        IReadOnlyList<string> sourcePaths = sourceLoader.DiscoverSourcePaths(projectDirectory, project, cancellationToken);
 
         if (sourcePaths.Count == 0)
         {
@@ -115,7 +117,7 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
             return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
         }
 
-        string outputPath = GetOutputPath(path, project);
+        string outputPath = GetOutputPath(projectDirectory, project);
 
         // TODO: Eventually project configuration will determine what builder to use.
         CompiledArtifact artifact = await executableBuilder.BuildAsync(entry, stop, [], outputPath, cancellationToken);
