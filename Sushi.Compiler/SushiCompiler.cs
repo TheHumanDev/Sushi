@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Analysis;
 using Sushi.Compiler.Backend.Native;
 using Sushi.Compiler.Diagnostics;
@@ -96,9 +97,13 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
             sources.Add(source);
         }
 
-        LoweredFunction? entry = new(Intermediate.IRAccessibility.Public, "__sushi_root_entry", Intermediate.IRType.Void, []);
+        LoweredBasicBlock entryBlock = new("__sushi_root_entry", [], new LoweredReturnTerminator());
 
-        LoweredFunction? stop = new(Intermediate.IRAccessibility.Public, "__sushi_root_stop", Intermediate.IRType.Void, []);
+        LoweredBasicBlock stopBlock = new("__sushi_root_stop", [], new LoweredReturnTerminator());
+
+        LoweredFunction? entry = new(Intermediate.IRAccessibility.Public, "__sushi_root_entry", Intermediate.IRType.Void, new ReadOnlyCollection<LoweredBasicBlock>([entryBlock]));
+
+        LoweredFunction? stop = new(Intermediate.IRAccessibility.Public, "__sushi_root_stop", Intermediate.IRType.Void, new ReadOnlyCollection<LoweredBasicBlock>([stopBlock]));
 
         if (diagnosticReporter.HasErrors() || entry is null)
         {
