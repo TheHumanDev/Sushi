@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Sushi.Compiler.Diagnostics;
 using Sushi.Compiler.Parsing;
+using Sushi.Compiler.Parsing.Syntax;
+using Sushi.Compiler.Semantics;
 using Sushi.Core;
 using Sushi.Core.Analysis;
 using Sushi.Core.Diagnostics;
@@ -56,9 +58,17 @@ public sealed class SourceAnalyzer : Analyzer
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        SourceFileSyntax sourceFile = (SourceFileSyntax)parserResult.Tree.Root;
+
+        SourceFileBindResult bindResult = SourceFileBinder.Bind(sourceFile, localDiagnostics, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+
         diagnosticReporter.CommitReporter(localDiagnostics);
 
-        SourceAnalysisResult result = new(snapshot, parserResult.Tree);
+        SourceAnalysisResult result = new(snapshot, parserResult.Tree)
+        {
+            Activities = bindResult.Activities
+        };
 
         return result;
     }
