@@ -1,8 +1,7 @@
 ﻿using Sushi.Core.Lexing.Tokenization;
-using Sushi.Core.Parsing.Syntax;
 using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Parsing.Syntax;
+namespace Sushi.Core.Parsing.Syntax;
 
 /// <summary>
 /// Represents a lexical token after the parser has assigned it a grammatical role.

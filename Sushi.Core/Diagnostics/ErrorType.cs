@@ -24,4 +24,9 @@ public enum ErrorType
     UnterminatedBlockComment = 201,
     ExpectedSyntax = 202,
     #endregion Syntax Errors
+
+    #region Semantic Errors
+    MissingRootActivity = 300,
+    DuplicateRootActivity = 301,
+    #endregion Semantic Errors
 }

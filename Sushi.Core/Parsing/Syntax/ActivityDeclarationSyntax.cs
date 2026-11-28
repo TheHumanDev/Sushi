@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Sushi.Core.Parsing.Syntax;
 using Sushi.Core.Source;
 
-namespace Sushi.Compiler.Parsing.Syntax;
+namespace Sushi.Core.Parsing.Syntax;
 
 /// <summary>
 /// Represents a declared activity with an explicit lifetime classification and ordered members.

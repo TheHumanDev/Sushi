@@ -9,6 +9,7 @@ using Sushi.Core;
 using Sushi.Core.Analysis;
 using Sushi.Core.Configuration;
 using Sushi.Core.Diagnostics;
+using Sushi.Core.Semantics;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler;
@@ -102,6 +103,18 @@ public sealed class SushiCompiler([NotNull] ISushiContext<ParsingContext> contex
             SourceAnalysisResult source = (SourceAnalysisResult)await new SourceAnalyzer(context).Analyze(snapshot, diagnosticReporter, cancellationToken);
 
             sources.Add(source);
+        }
+
+        if (diagnosticReporter.HasErrors())
+        {
+            return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
+        }
+
+        BoundActivity? root = RootActivityAnalyzer.SelectRoot(sources, projectSnapshot, diagnosticReporter, cancellationToken);
+
+        if (diagnosticReporter.HasErrors() || root is null)
+        {
+            return CompilationResult.FromFailure(diagnosticReporter.ReportDiagnostics());
         }
 
         LoweredBasicBlock entryBlock = new("__sushi_root_entry", [], new LoweredReturnTerminator());

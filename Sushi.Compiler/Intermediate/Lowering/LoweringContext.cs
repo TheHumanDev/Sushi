@@ -7,7 +7,6 @@ public sealed class LoweringContext
 {
     private readonly CancellationToken cancellationToken;
     private readonly List<BlockBuilder> blocks = [];
-    private readonly Dictionary<int, IRType> localTypes = [];
     private BlockBuilder current;
     private int nextBlockIndex;
 

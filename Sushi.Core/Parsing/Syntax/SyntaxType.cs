@@ -4,7 +4,7 @@
 /// Identifies the grammatical role of syntax nodes and tokens in a Sushi concrete syntax tree.
 /// </summary>
 public enum SyntaxType
-{ 
+{
     SourceFile,
     AccessModifierKeyword,
     ActivityDeclaration,
@@ -13,5 +13,14 @@ public enum SyntaxType
     CloseBraceToken,
     IdentifierToken,
     EscapedIdentifierToken,
-    RootKeyword
+    RootKeyword,
+    EntryKeyword,
+    StopKeyword,
+    VoidKeyword,
+    OpenParenthesisToken,
+    CloseParenthesisToken,
+    CommaToken,
+    Block,
+    Parameter,
+    ActivityMethodDeclaration
 }

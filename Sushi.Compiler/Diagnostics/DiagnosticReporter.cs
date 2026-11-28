@@ -11,7 +11,7 @@ public sealed class DiagnosticReporter : IDiagnosticReporter
 
     private static readonly Dictionary<ErrorType, string> errorMessages = new()
     {
-        [ErrorType.InvalidUtf8] = "Malformed UTF-8 source sequence.",   
+        [ErrorType.InvalidUtf8] = "Malformed UTF-8 source sequence.",
         [ErrorType.UnterminatedBlockComment] = "Unterminated block comment.",
         [ErrorType.TomlSyntaxError] = "Syntax error in Toml source.",
         [ErrorType.TomlMissingRequiredKey] = "Required configuration key is missing.",
@@ -19,7 +19,9 @@ public sealed class DiagnosticReporter : IDiagnosticReporter
         [ErrorType.TomlEmptyProjectName] = "Required project name is empty.",
         [ErrorType.TomlMissingBuildTargets] = "Project configuration must define at least one build target.",
         [ErrorType.TomlUnknownDefaultBuildTarget] = "Default build target is not declared in \"build.targets\".",
-        [ErrorType.ExpectedSyntax] = "Syntax expected."
+        [ErrorType.ExpectedSyntax] = "Syntax expected.",
+        [ErrorType.MissingRootActivity] = "An executable Sushi project must declare exactly one root activity in its own assembly.",
+        [ErrorType.DuplicateRootActivity] = "An executable Sushi project cannot declare multiple root activities.",
     };
 
     private static readonly Dictionary<WarningType, string> warningMessages = [];

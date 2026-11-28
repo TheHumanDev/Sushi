@@ -1,4 +1,5 @@
 ﻿using Sushi.Core.Parsing.Syntax;
+using Sushi.Core.Semantics;
 using Sushi.Core.Source;
 
 namespace Sushi.Core.Analysis;
@@ -9,7 +10,7 @@ namespace Sushi.Core.Analysis;
 /// <param name="Snapshot">
 /// The snapshot that was analyzed.
 /// </param>
-/// <param name="SyntaxTree">
+/// <param name="Tree">
 /// The concrete syntax tree produced from the analyzed source.
 /// </param>
 public record SourceAnalysisResult(SourceSnapshot Snapshot, IConcreteSyntaxTree Tree) : AnalysisResult(Snapshot)
@@ -20,4 +21,9 @@ public record SourceAnalysisResult(SourceSnapshot Snapshot, IConcreteSyntaxTree 
     /// membership in multiple projects.
     /// </summary>
     public Uri? ProjectUri { get; init; }
+
+    /// <summary>
+    /// Gets the successfully bound activity declarations in this source file.
+    /// </summary>
+    public IReadOnlyList<BoundActivity> Activities { get; init; } = [];
 }

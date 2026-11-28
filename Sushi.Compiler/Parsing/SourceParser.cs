@@ -4,6 +4,7 @@ using Sushi.Compiler.Parsing.Syntax;
 using Sushi.Core.Diagnostics;
 using Sushi.Core.Lexing.Tokenization;
 using Sushi.Core.Parsing;
+using Sushi.Core.Parsing.Syntax;
 using Sushi.Core.Source;
 
 namespace Sushi.Compiler.Parsing;
