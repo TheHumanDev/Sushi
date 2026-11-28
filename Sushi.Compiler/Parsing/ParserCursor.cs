@@ -315,6 +315,23 @@ public sealed class ParserCursor(LexResult result, IKeywordProvider keywordProvi
     }
 
     /// <summary>
+    /// Returns whether the specified token is punctuation that matches the specified byte.
+    /// </summary>
+    /// <param name="token">
+    /// The token to check.
+    /// </param>
+    /// <param name="punctuation">
+    /// The punctuation byte to match against.
+    /// </param>
+    /// <returns>
+    /// True if the token is the punctuation byte. False otherwise.
+    /// </returns>
+    public bool IsPunctuation(LexToken token, byte punctuation)
+        => token.Type is LexTokenType.Punctuation
+            && token.Span.Length == 1
+            && this.Snapshot.Bytes.Span[token.Span.Start] == punctuation;
+
+    /// <summary>
     /// Returns whether the token type is considered lexical trivia.
     /// </summary>
     /// <param name="type">

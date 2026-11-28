@@ -18,6 +18,11 @@ public sealed class ParsingContext : IParsingContext
     public ActivityParser ActivityParser { get; }
 
     /// <summary>
+    /// Parses blocks, such as method bodies.
+    /// </summary>
+    public BlockParser BlockParser { get; }
+
+    /// <summary>
     /// Represents the current position of the parsing pass.
     /// From the cursor, the parser can advance or peek ahead.
     /// </summary>

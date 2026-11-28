@@ -22,5 +22,6 @@ public enum SyntaxType
     CommaToken,
     Block,
     Parameter,
-    ActivityMethodDeclaration
+    ActivityMethodDeclaration,
+    UnsupportedActivityMember
 }
