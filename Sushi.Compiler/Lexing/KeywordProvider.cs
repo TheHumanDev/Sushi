@@ -17,6 +17,8 @@ public sealed class KeywordProvider : IKeywordProvider
     ([
         new("activity", KeywordType.Keyword),
         new("root", KeywordType.Keyword),
+        new("entry", KeywordType.Keyword),
+        new("stop", KeywordType.Keyword),
         new("public", KeywordType.AccessModifier),
         new("internal", KeywordType.AccessModifier),
         new("package", KeywordType.AccessModifier),
